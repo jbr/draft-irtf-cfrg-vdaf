@@ -1,0 +1,3515 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Verifiable Distributed Aggregation Functions</title>
+<meta content="Christopher Patton" name="author">
+<meta content="Richard L. Barnes" name="author">
+<meta content="Phillipp Schoppmann" name="author">
+<meta content="
+       This document describes Verifiable Distributed Aggregation Functions (VDAFs), a
+family of multi-party protocols for computing aggregate statistics over user
+measurements. These protocols are designed to ensure that, as long as at least
+one aggregation server executes the protocol honestly, individual measurements
+are never seen by any server in the clear. At the same time, VDAFs allow the
+servers to detect if a malicious or misconfigured client submitted an
+input that would result in an incorrect aggregate result. 
+    " name="description">
+<meta content="xml2rfc 3.12.1" name="generator">
+<meta content="Internet-Draft" name="keyword">
+<meta content="draft-patton-cfrg-vdaf-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.12.1
+    Python 3.9.7
+    appdirs 1.4.4
+    ConfigArgParse 1.3
+    google-i18n-address 2.5.0
+    html5lib 1.1
+    intervaltree 3.1.0
+    Jinja2 2.11.3
+    kitchen 1.2.6
+    lxml 4.6.5
+    pycountry 20.7.3
+    pyflakes 2.3.1
+    PyYAML 5.4.1
+    requests 2.26.0
+    setuptools 52.0.0
+    six 1.16.0
+-->
+<link href="draft-patton-cfrg-vdaf.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Cabin Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Cabin Condensed SemiBold'), local('CabinCondensed-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/cabincondensed-semibold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Cabin Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Cabin Condensed SemiBold'), local('CabinCondensed-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/cabincondensed-semibold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Cabin Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Cabin Condensed SemiBold'), local('CabinCondensed-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/cabincondensed-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Cabin Condensed", sans-serif;
+  font-weight: 600;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+}
+ol ol, ul ul, ol ul, ul ol {
+  margin-left: 1em;
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+.ulCompact li {
+  margin: 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+}
+ul.empty li, .ulEmpty li {
+  margin-top: 0.5em;
+}
+ul.compact, .ulCompact,
+ol.compact, .olCompact {
+  line-height: 100%;
+  margin: 0 0 0 2em;
+}
+
+/* definition lists */
+dl {
+}
+dl > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl > dd {
+  margin-bottom: .8em;
+  min-height: 1.3em;
+}
+dl.compact > dd, .dlCompact > dd {
+  margin-bottom: 0em;
+}
+dl > dd > dl {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+}
+dd.break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href].selfRef {
+  color: var(--text-color);
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines */
+  line-height: 0;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+}
+@media screen {
+  pre, svg {
+    display: inline-block;
+    overflow-x: auto;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  pre + .pilcrow, svg + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+tr:nth-child(2n) > td {
+  background-color: var(--background-color);
+}
+tr:nth-child(2n+1) > td {
+  background-color: var(--highlight-color);
+}
+thead+tbody > tr:nth-child(2n) > td {
+  background-color: var(--highlight-color);
+}
+thead+tbody > tr:nth-child(2n+1) > td {
+  background-color: var(--background-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+}
+a.pilcrow[href] { color: var(--pilcrow-weak); }
+a.pilcrow[href]:hover { text-decoration: none; }
+@media not print {
+  :hover > a.pilcrow {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+}
+
+.role {
+  font-variant: all-small-caps;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 8em;
+}
+#identifiers dt {
+  width: var(--identifier-width);
+  margin: 0;
+  clear: left;
+  float: left;
+  text-align: right;
+}
+#identifiers dd {
+  margin: 0 0 0 calc(1em + var(--identifier-width));
+  min-width: 5em;
+}
+#identifiers .authors .author {
+  display: inline-block;
+  margin-right: 1.5em;
+}
+#identifiers .authors .org {
+  font-style: italic;
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: left;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+}
+#toc nav ul {
+  margin: 0 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+}
+#toc nav li {
+  line-height: 1.3em;
+  margin: 0.75em 0;
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+#toc a.xref {
+  white-space: normal;
+}
+/* references */
+.references dt {
+  text-align: right;
+  font-weight: bold;
+  min-width: 7em;
+}
+.references dd {
+  margin-left: 8em;
+  overflow: auto;
+}
+
+.refInstance {
+  margin-bottom: 1.25em;
+}
+
+.references .ascii {
+  margin-bottom: 0.25em;
+}
+
+/* index */
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  margin: 1em 0;
+}
+address.vcard .nameRole {
+  font-weight: 700;
+  margin-left: 0;
+}
+address.vcard .label {
+  margin: 0.5em 0;
+}
+address.vcard .type {
+  display: none;
+}
+.alternative-contact {
+  margin: 1.5em 0 1em;
+}
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+/* alternative layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc.active {
+      opacity: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+  }
+  #toc h2::before { /* css hamburger */
+    float: right;
+    position: relative;
+    width: 1em;
+    height: 1px;
+    left: -164px;
+    margin: 8px 0 0 0;
+    background: white none repeat scroll 0 0;
+    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+    content: "";
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active nav {
+    display: block;
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:link,
+  #toc h2 a:focus,
+  #toc h2 a:hover,
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin-top: 2px;
+  }
+}
+
+/* alternative layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  #toc nav > ul  {
+    margin-bottom: 2em;
+  }
+  #toc ul {
+    margin: 0 0 0 4px;
+    font-size: var(--small-font-size);
+  }
+  #toc ul p, #toc ul li {
+    margin: 2px 0;
+    line-height: 22px;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre {
+    page-break-inside: avoid;
+  }
+  figure {
+    overflow: scroll;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  h2+*, h3+*, h4+*, h5+*, h6+* {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Changes introduced to fix issues found during implementation */
+
+/* Separate body from document info even without intervening H1 */
+section {
+  clear: both;
+}
+
+/* Top align author divs, to avoid names without organization dropping level with org names */
+.author {
+  vertical-align: top;
+}
+
+/* Style section numbers with more space between number and title */
+.section-number {
+  padding-right: 0.5em;
+}
+
+/* Add styling for a link in the ToC that points to the top of the document */
+a.toplink {
+  float: right;
+  margin: 8px 0.5em 0;
+}
+
+/* Fix the dl styling to match the RFC 7992 attributes */
+dl > dt,
+dl.dlParallel > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl.dlNewline > dt {
+  float: none;
+}
+
+/* Provide styling for table cell text alignment */
+table .text-left, table .text-left {
+  text-align: left;
+}
+table .text-center, table .text-center {
+  text-align: center;
+}
+table .text-right, table .text-right {
+  text-align: right;
+}
+
+/* Make the alternative author contact information look less like just another
+   author, and group it closer with the primary author contact information */
+.alternative-contact {
+  margin: 0.5em 0 0.25em 0;
+}
+address .non-ascii {
+  margin: 0 0 0 2em;
+}
+
+/* With it being possible to set tables with alignment
+  left, center, and right, { width: 100%; } does not make sense */
+table {
+  width: auto;
+}
+
+/* Avoid reference text that sits in a block with very wide left margin,
+   because of a long floating dt label.*/
+.references dd {
+  overflow: visible;
+}
+
+/* Control caption placement */
+caption {
+  caption-side: bottom;
+}
+
+/* Limit the width of the author address vcard, so names in right-to-left
+   script don't end up on the other side of the page. */
+
+address.vcard {
+  max-width: 20em;
+  margin-right: auto;
+}
+
+/* For address alignment dependent on LTR or RTL scripts */
+address div.left {
+  text-align: left;
+}
+address div.right {
+  text-align: right;
+}
+
+/* Give the table caption label the same styling as the figcaption */
+
+@media print {
+  .toplink {
+    display: none;
+  }
+
+  /* avoid overwriting the top border line with the ToC header */
+  #toc {
+    padding-top: 1px;
+  }
+
+  /* Avoid page breaks inside dl and author address entries */
+  dd {
+    page-break-before: avoid;
+  }
+  .vcard {
+    page-break-inside: avoid;
+  }
+
+}
+/* Tweak the bcp14 keyword presentation */
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+/* Trick: a prefix match works because only black and white are allowed */
+svg [stroke="black"], svg [stroke^="#000"] {
+  stroke: var(--text-color);
+}
+svg [stroke="white"], svg [stroke^="#fff"] {
+  stroke: var(--background-color);
+}
+svg [fill="black"], svg [fill^="#000"], svg :not([fill]) {
+  fill: var(--text-color);
+}
+svg [stroke="fill"], svg [fill^="#fff"] {
+  fill: var(--background-color);
+}
+}
+</style>
+
+</head>
+<body>
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">VDAF</td>
+<td class="right">February 2022</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Patton, et al.</td>
+<td class="center">Expires 13 August 2022</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">CFRG</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-patton-cfrg-vdaf-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2022-02-09" class="published">9 February 2022</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Informational</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2022-08-13">13 August 2022</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">C. Patton</div>
+<div class="org">Cloudflare, Inc.</div>
+</div>
+<div class="author">
+      <div class="author-name">R.L. Barnes</div>
+<div class="org">Cisco</div>
+</div>
+<div class="author">
+      <div class="author-name">P. Schoppmann</div>
+<div class="org">Google</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Verifiable Distributed Aggregation Functions</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document describes Verifiable Distributed Aggregation Functions (VDAFs), a
+family of multi-party protocols for computing aggregate statistics over user
+measurements. These protocols are designed to ensure that, as long as at least
+one aggregation server executes the protocol honestly, individual measurements
+are never seen by any server in the clear. At the same time, VDAFs allow the
+servers to detect if a malicious or misconfigured client submitted an
+input that would result in an incorrect aggregate result.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-discussion-venues">
+<a href="#name-discussion-venues" class="section-name selfRef">Discussion Venues</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">Discussion of this document takes place on the
+    Crypto Forum Research Group mailing list (cfrg@ietf.org),
+    which is archived at <span><a href="https://mailarchive.ietf.org/arch/search/?email_list=cfrg">https://mailarchive.ietf.org/arch/search/?email_list=cfrg</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+    <span><a href="https://github.com/cjpatton/vdaf">https://github.com/cjpatton/vdaf</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 13 August 2022.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2022 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="xref">1</a>.  <a href="#name-introduction" class="xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="xref">2</a>.  <a href="#name-conventions-and-definitions" class="xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="xref">3</a>.  <a href="#name-overview" class="xref">Overview</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="xref">4</a>.  <a href="#name-definition-of-vdafs" class="xref">Definition of VDAFs</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="xref">4.1</a>.  <a href="#name-constants-and-associated-ty" class="xref">Constants and Associated Types</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="xref">4.2</a>.  <a href="#name-setup" class="xref">Setup</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="xref">4.3</a>.  <a href="#name-sharding" class="xref">Sharding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="xref">4.4</a>.  <a href="#name-preparation" class="xref">Preparation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="xref">4.5</a>.  <a href="#name-aggregation" class="xref">Aggregation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="xref">4.6</a>.  <a href="#name-unsharding" class="xref">Unsharding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.7">
+                <p id="section-toc.1-1.4.2.7.1"><a href="#section-4.7" class="xref">4.7</a>.  <a href="#name-execution-of-a-vdaf" class="xref">Execution of a VDAF</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="xref">5</a>.  <a href="#name-preliminaries" class="xref">Preliminaries</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="xref">5.1</a>.  <a href="#name-finite-fields" class="xref">Finite Fields</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.1">
+                    <p id="section-toc.1-1.5.2.1.2.1.1"><a href="#section-5.1.1" class="xref">5.1.1</a>.  <a href="#name-inner-product-of-vectors" class="xref">Inner product of Vectors</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.2">
+                    <p id="section-toc.1-1.5.2.1.2.2.1"><a href="#section-5.1.2" class="xref">5.1.2</a>.  <a href="#name-parameters" class="xref">Parameters</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="xref">5.2</a>.  <a href="#name-pseudorandom-generators" class="xref">Pseudorandom Generators</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.1">
+                    <p id="section-toc.1-1.5.2.2.2.1.1"><a href="#section-5.2.1" class="xref">5.2.1</a>.  <a href="#name-constructions" class="xref">Constructions</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="xref">6</a>.  <a href="#name-prio3" class="xref">prio3</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="xref">6.1</a>.  <a href="#name-fully-linear-proof-flp-syst" class="xref">Fully Linear Proof (FLP) Systems</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1.2.1">
+                    <p id="section-toc.1-1.6.2.1.2.1.1"><a href="#section-6.1.1" class="xref">6.1.1</a>.  <a href="#name-encoding-the-input" class="xref">Encoding the Input</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="xref">6.2</a>.  <a href="#name-construction" class="xref">Construction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.1">
+                    <p id="section-toc.1-1.6.2.2.2.1.1"><a href="#section-6.2.1" class="xref">6.2.1</a>.  <a href="#name-setup-2" class="xref">Setup</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.2">
+                    <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="xref">6.2.2</a>.  <a href="#name-sharding-2" class="xref">Sharding</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.3">
+                    <p id="section-toc.1-1.6.2.2.2.3.1"><a href="#section-6.2.3" class="xref">6.2.3</a>.  <a href="#name-preparation-2" class="xref">Preparation</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.4">
+                    <p id="section-toc.1-1.6.2.2.2.4.1"><a href="#section-6.2.4" class="xref">6.2.4</a>.  <a href="#name-aggregation-2" class="xref">Aggregation</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.5">
+                    <p id="section-toc.1-1.6.2.2.2.5.1"><a href="#section-6.2.5" class="xref">6.2.5</a>.  <a href="#name-unsharding-2" class="xref">Unsharding</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.6">
+                    <p id="section-toc.1-1.6.2.2.2.6.1"><a href="#section-6.2.6" class="xref">6.2.6</a>.  <a href="#name-helper-functions" class="xref">Helper Functions</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="xref">7</a>.  <a href="#name-poplar1" class="xref">poplar1</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="xref">7.1</a>.  <a href="#name-incremental-distributed-poi" class="xref">Incremental Distributed Point Functions (IDPFs)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="xref">7.2</a>.  <a href="#name-construction-2" class="xref">Construction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.1">
+                    <p id="section-toc.1-1.7.2.2.2.1.1"><a href="#section-7.2.1" class="xref">7.2.1</a>.  <a href="#name-setup-3" class="xref">Setup</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.2">
+                    <p id="section-toc.1-1.7.2.2.2.2.1"><a href="#section-7.2.2" class="xref">7.2.2</a>.  <a href="#name-preparation-3" class="xref">Preparation</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.3">
+                    <p id="section-toc.1-1.7.2.2.2.3.1"><a href="#section-7.2.3" class="xref">7.2.3</a>.  <a href="#name-aggregation-3" class="xref">Aggregation</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.4">
+                    <p id="section-toc.1-1.7.2.2.2.4.1"><a href="#section-7.2.4" class="xref">7.2.4</a>.  <a href="#name-unsharding-3" class="xref">Unsharding</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.5">
+                    <p id="section-toc.1-1.7.2.2.2.5.1"><a href="#section-7.2.5" class="xref">7.2.5</a>.  <a href="#name-helper-functions-2" class="xref">Helper Functions</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="xref">8</a>.  <a href="#name-security-considerations" class="xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="xref">9</a>.  <a href="#name-iana-considerations" class="xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="xref">10</a>. <a href="#name-references" class="xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="xref">10.1</a>.  <a href="#name-normative-references" class="xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="xref">10.2</a>.  <a href="#name-informative-references" class="xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-A" class="xref"></a><a href="#name-acknowledgments" class="xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="xref"></a><a href="#name-authors-addresses" class="xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The ubiquity of the Internet makes it an ideal platform for measurement of
+large-scale phenomena, whether public health trends or the behavior of computer
+systems at scale. There is substantial overlap, however, between information
+that is valuable to measure and information that users consider private.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">For example, consider an application that provides health information to users.
+The operator of an application might want to know which parts of their
+application are used most often, as a way to guide future development of the
+application.  Specific users' patterns of usage, though, could reveal sensitive
+things about them, such as which users are researching a given health condition.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">In many situations, the measurement collector is only interested in aggregate
+statistics, e.g., which portions of an application are most used or what
+fraction of people have experienced a given disease.  Thus systems that provide
+aggregate statistics while protecting individual measurements can deliver the
+value of the measurements while protecting users' privacy.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">Most prior approaches to this problem fall under the rubric of "differential
+privacy (DP)" <span>[<a href="#Dwo06" class="xref">Dwo06</a>]</span>. Roughly speaking, a data aggregation system that is
+differentially private ensures that the degree to which any individual
+measurement influences the value of the aggregated output can be precisely
+controlled. For example, in systems like RAPPOR <span>[<a href="#EPK14" class="xref">EPK14</a>]</span>, each user samples
+noise from a well-known distribution and adds it to their input before
+submitting to the aggregation server. The aggregation server then adds up the
+noisy inputs, and because it knows the distribution from whence the noise was
+sampled, it can estimate the true sum with reasonable precision.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">Differentially private systems like RAPPOR are easy to deploy and provide a
+useful guarantee. On its own, however, DP falls short of the strongest privacy
+property one could hope for. Specifically, depending on the "amount" of noise a
+client adds to its input, it may be possible for a curious aggregator to make a
+reasonable guess of the input's true value. Indeed, the more noise the clients
+add, the less reliable will be the server's estimate of the output. Thus systems
+employing DP techniques alone must strike a delicate balance between privacy and
+utility.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">The ideal goal for a privacy-preserving measurement system is that of secure
+multi-party computation: No participant in the protocol should learn anything
+about an individual input beyond what it can deduce from the aggregate. In this
+document, we describe Verifiable Distributed Aggregation Functions (VDAFs) as a
+general class of protocols that achieve this goal.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<p id="section-1-7">VDAF schemes achieve their privacy goal by distributing the computation of the
+aggregate among a number of non-colluding aggregation servers. As long as a
+subset of the servers executes the protocol honestly, VDAFs guarantee that no
+input is ever accessible to any party besides the client that submitted it. At
+the same time, VDAFs are "verifiable" in the sense that malformed inputs that
+would otherwise garble the output of the computation can be detected and removed
+from the set of inputs.<a href="#section-1-7" class="pilcrow">¶</a></p>
+<p id="section-1-8">The cost of achieving these security properties is the need for multiple servers
+to participate in the protocol, and the need to ensure they do not collude to
+undermine the VDAF's privacy guarantees.  Recent implementation experience has
+shown that practical challenges of coordinating multiple servers can be
+overcome.  The Prio system <span>[<a href="#CGB17" class="xref">CGB17</a>]</span> (essentially a VDAF) has been deployed in
+systems supporting hundreds of millions of users: The Mozilla Origin Telemetry
+project <span>[<a href="#OriginTelemetry" class="xref">OriginTelemetry</a>]</span> and the Exposure Notification Private Analytics
+collaboration among the Internet Security Research Group (ISRG), Google, Apple,
+and others <span>[<a href="#ENPA" class="xref">ENPA</a>]</span>.<a href="#section-1-8" class="pilcrow">¶</a></p>
+<p id="section-1-9">The VDAF abstraction laid out in <a href="#vdaf" class="xref">Section 4</a> represents a class of multi-party
+protocols for privacy-preserving measurement proposed in the literature. These
+protocols vary in their operational and security considerations, sometimes in
+subtle but consequential ways. This document therefore has two important goals:<a href="#section-1-9" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1-10">
+<li id="section-1-10.1">
+          <p id="section-1-10.1.1">Providing applications like <span>[<a href="#I-D.draft-gpew-priv-ppm" class="xref">I-D.draft-gpew-priv-ppm</a>]</span> with a simple,
+uniform interface for accessing privacy-preserving measurement schemes, and
+documenting relevant operational and security bounds for that interface:<a href="#section-1-10.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1-10.1.2">
+<li id="section-1-10.1.2.1">General patterns of communications among the various actors involved in
+the system (clients, aggregators, and measurement collectors);<a href="#section-1-10.1.2.1" class="pilcrow">¶</a>
+</li>
+            <li id="section-1-10.1.2.2">Capabilities of a malicious coalition of servers attempting divulge
+information about client inputs; and<a href="#section-1-10.1.2.2" class="pilcrow">¶</a>
+</li>
+            <li id="section-1-10.1.2.3">Conditions that are necessary to ensure that malicious clients cannot
+corrupt the computation.<a href="#section-1-10.1.2.3" class="pilcrow">¶</a>
+</li>
+          </ol>
+</li>
+        <li id="section-1-10.2">Providing cryptographers with design criteria that allow new constructions
+to be easily used by applications.<a href="#section-1-10.2" class="pilcrow">¶</a>
+</li>
+      </ol>
+<p id="section-1-11">This document also specifies two concrete VDAF schemes, each based on a protocol
+from the literature.<a href="#section-1-11" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-12.1">
+          <p id="section-1-12.1.1">The aforementioned Prio system <span>[<a href="#CGB17" class="xref">CGB17</a>]</span> allows for the privacy-preserving
+computation of a variety aggregate statistics. The basic idea underlying Prio
+is fairly simple:<a href="#section-1-12.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1-12.1.2">
+<li id="section-1-12.1.2.1">Each client shards its input into a sequence of additive shares and
+distributes the shares among the aggregation servers.<a href="#section-1-12.1.2.1" class="pilcrow">¶</a>
+</li>
+            <li id="section-1-12.1.2.2">Next, each server adds up its shares locally, resulting in an additive
+share of the aggregate.<a href="#section-1-12.1.2.2" class="pilcrow">¶</a>
+</li>
+            <li id="section-1-12.1.2.3">Finally, the aggregators combine their additive shares to obtain the final
+aggregate.<a href="#section-1-12.1.2.3" class="pilcrow">¶</a>
+</li>
+          </ol>
+<p id="section-1-12.1.3">
+The difficult part of this system is ensuring that the servers hold shares of
+a valid input, e.g., the input is an integer in a specific range. Thus Prio
+specifies a multi-party protocol for accomplishing this task.<a href="#section-1-12.1.3" class="pilcrow">¶</a></p>
+<p id="section-1-12.1.4">
+In <a href="#prio3" class="xref">Section 6</a> we describe <code>prio3</code>, a VDAF that follows the same overall
+framework as the original Prio protocol, but incorporates techniques
+introduced in <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span> that result in significant performance gains.<a href="#section-1-12.1.4" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-12.2">
+          <p id="section-1-12.2.1">More recently, Boneh et al. <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span> described a protocol called Poplar for
+solving the <code>t</code>-heavy-hitters problem in a privacy-preserving manner. Here
+each client holds a bit-string of length <code>n</code>, and the goal of the aggregation
+servers is to compute the set of inputs that occur at least <code>t</code> times. The
+core primitive used in their protocol is a generalization of a Distributed
+Point Function (DPF) <span>[<a href="#GI14" class="xref">GI14</a>]</span> that allows the servers to "query" their DPF
+shares on any bit-string of length shorter than or equal to <code>n</code>. As a result
+of this query, each of the servers has an additive share of a bit indicating
+whether the string is a prefix of the client's input. The protocol also
+specifies a multi-party computation for verifying that at most one string
+among a set of candidates is a prefix of the client's input.<a href="#section-1-12.2.1" class="pilcrow">¶</a></p>
+<p id="section-1-12.2.2">
+In <a href="#poplar1" class="xref">Section 7</a> we describe a VDAF called <code>poplar1</code> that implements this
+functionality.<a href="#section-1-12.2.2" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-13">The remainder of this document is organized as follows: <a href="#overview" class="xref">Section 3</a> gives a
+brief overview of VDAFs; <a href="#vdaf" class="xref">Section 4</a> defines the syntax for VDAFs; <a href="#prelim" class="xref">Section 5</a>
+defines various functionalities that are common to our constructions; <a href="#poplar1" class="xref">Section 7</a>
+describes the <code>poplar1</code> construction; <a href="#prio3" class="xref">Section 6</a> describes the <code>prio3</code> construction;
+and <a href="#security" class="xref">Section 8</a> enumerates the security considerations for VDAFs.<a href="#section-1-13" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">Algorithms in this document are written in Python 3. Type hints are used to
+define input and output types. Function parameters without type hints implicitly
+have type <code>Bytes</code>, an arbitrary byte string. A fatal error in a program (e.g.,
+failure to parse one of the function parameters) is usually handled by raising
+an exception.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">Some common functionalities:<a href="#section-2-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2-4.1">
+          <code>zeros(len: Unsigned) -&gt; output: Bytes</code> returns an array of zero bytes.
+The length of <code>output</code> <span class="bcp14">MUST</span> be <code>len</code>.<a href="#section-2-4.1" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-2-4.2">
+          <code>gen_rand(len: Unsigned) -&gt; output: Bytes</code> returns an array of random bytes.
+The length of <code>output</code> <span class="bcp14">MUST</span> be <code>len</code>.<a href="#section-2-4.2" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-2-4.3">
+          <code>byte(int: Unsigned) -&gt; Byte</code> returns the representation of <code>int</code> as a byte.
+The value of <code>int</code> <span class="bcp14">MUST</span> be in range <code>[0,256)</code>.<a href="#section-2-4.3" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-2-4.4">
+          <code>I2OSP</code> and <code>OS2IP</code> from <span>[<a href="#RFC8017" class="xref">RFC8017</a>]</span>, which are used, respectively, to
+convert a non-negative integer to a byte string and convert a byte string to a
+non-negative integer.<a href="#section-2-4.4" class="pilcrow">¶</a>
+</li>
+      </ul>
+</section>
+</div>
+<div id="overview">
+<section id="section-3">
+      <h2 id="name-overview">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-overview" class="section-name selfRef">Overview</a>
+      </h2>
+<p id="section-3-1">In a VDAF-based private measurement system, we distinguish three types of
+actors: Clients, Aggregators, and Collectors.  The overall flow of the
+measurement process is as follows:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-2.1">Clients are configured with public parameters for a set of aggregators.<a href="#section-3-2.1" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-3-2.2">To submit an individual measurement, a client shards the measurement into
+"input shares" and sends one input share to each Aggregator.<a href="#section-3-2.2" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-3-2.3">
+          <p id="section-3-2.3.1">The aggregators verify the validity of the input shares, producing a set of
+"output shares".<a href="#section-3-2.3.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-2.3.2.1">Output shares are in one-to-one correspondence with the input shares.<a href="#section-3-2.3.2.1" class="pilcrow">¶</a>
+</li>
+            <li class="normal" id="section-3-2.3.2.2">Just as each Aggregator receives one input share of each input, at the end
+of the validation process, each aggregator holds one output share.<a href="#section-3-2.3.2.2" class="pilcrow">¶</a>
+</li>
+            <li class="normal" id="section-3-2.3.2.3">In most VDAFs, aggregators will need to exchange information among
+themselves as part of the validation process.<a href="#section-3-2.3.2.3" class="pilcrow">¶</a>
+</li>
+          </ul>
+</li>
+        <li class="normal" id="section-3-2.4">Each aggregator combine the output shares across inputs in the batch to
+compute "aggregate shares", i.e., shares of the desired aggregate result.<a href="#section-3-2.4" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-3-2.5">The aggregators submit their aggregate shares to the collector, who combines
+them to obtain the aggregate result over the batch.<a href="#section-3-2.5" class="pilcrow">¶</a>
+</li>
+      </ul>
+<span id="name-overall-data-flow-of-a-vdaf"></span><div id="overall-flow">
+<figure id="figure-1">
+        <div class="alignLeft art-text artwork" id="section-3-3.1">
+<pre>
+                 +--------------+
+           +----&gt;| Aggregator 0 |----+
+           |     +--------------+    |
+           |             ^           |
+           |             |           |
+           |             V           |
+           |     +--------------+    |
+           | +--&gt;| Aggregator 1 |--+ |
+           | |   +--------------+  | |
++--------+-+ |           ^         | +-&gt;+-----------+
+| Client |---+           |         +---&gt;| Collector |--&gt; Aggregate
++--------+-+                         +-&gt;+-----------+
+           |            ...          |
+           |                         |
+           |             |           |
+           |             V           |
+           |    +----------------+   |
+           +---&gt;| Aggregator N-1 |---+
+                +----------------+
+
+      Input shares           Aggregate shares
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-overall-data-flow-of-a-vdaf" class="selfRef">Overall data flow of a VDAF</a>
+        </figcaption></figure>
+</div>
+<p id="section-3-4">Aggregators are a new class of actor relative to traditional measurement systems
+where clients submit measurements to a single server.  They are critical for
+both the privacy properties of the system and the correctness of the
+measurements obtained.  The privacy properties of the system are assured by
+non-collusion among aggregators, and aggregators are the entities that perform
+validation of client inputs.  Thus clients trust Aggregators not to collude
+(typically it is required that at least one Aggregator is honest), and
+Collectors trust Aggregators to properly verify Client inputs.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">Within the bounds of the non-collusion requirements of a given VDAF instance, it
+is possible for the same entity to play more than one role.  For example, the
+Collector could also act as an Aggregator, effectively using the other
+Aggregators to augment a basic client-server protocol.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-6">In this document, we describe the computations performed by the actors in this
+system.  It is up to applications to arrange for the required information to be
+delivered to the proper actors in the proper sequence.  In general, we assume
+that all communications are confidential and mutually authenticated, with the
+exception that Clients submitting measurements may be anonymous.<a href="#section-3-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="vdaf">
+<section id="section-4">
+      <h2 id="name-definition-of-vdafs">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-definition-of-vdafs" class="section-name selfRef">Definition of VDAFs</a>
+      </h2>
+<p id="section-4-1">A concrete VDAF specifies the algorithms involved in evaluating an aggregation
+function across a batch of inputs. This section specifies the interfaces of
+these algorithms as they would be exposed to applications.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">The overall execution of a VDAF comprises the following steps:<a href="#section-4-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4-3.1">Setup - Generating shared parameters for the aggregators<a href="#section-4-3.1" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-4-3.2">Sharding - Computing input shares from an individual measurement<a href="#section-4-3.2" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-4-3.3">Preparation - Conversion and verification of input shares to output shares
+compatible with the aggregation function being computed<a href="#section-4-3.3" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-4-3.4">Aggregation - Combining a sequence of output shares into an aggregate share<a href="#section-4-3.4" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-4-3.5">Unsharding - Combining a sequence of aggregate shares into an aggregate result<a href="#section-4-3.5" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-4-4">The setup algorithm is performed once for a given collection of Aggregators.
+Sharding and preparation are done once per measurement input.  Aggregation and
+unsharding are done over a batch of inputs (more precisely, over the output
+shares recovered from those inputs).<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">Note that the preparation step performs two functions: Verification and
+conversion.  Conversion translates input shares into output shares that are
+compatible with the aggregation function.  Verification ensures that aggregating
+the recovered output shares will not lead to a garbled aggregate result.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">The remainder of this section defines the VDAF interface in terms of an abstract
+base class <code>Vdaf</code>. This class defines the set of methods and attributes a
+conceret VDAF must provide.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<div id="constants-and-associated-types">
+<section id="section-4.1">
+        <h3 id="name-constants-and-associated-ty">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-constants-and-associated-ty" class="section-name selfRef">Constants and Associated Types</a>
+        </h3>
+<p id="section-4.1-1">Each concrete VDAF specifies the following constants:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.1-2.1">
+            <code>SHARES: Unsigned</code> is the number of Aggregators for which the VDAF is
+defined.<a href="#section-4.1-2.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.1-2.2">
+            <code>ROUNDS: Unsigned</code> is the number of rounds of communication during the
+preparation phase. (The communication pattern is derfined in
+<a href="#sec-vdaf-prepare" class="xref">Section 4.4</a>.)<a href="#section-4.1-2.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-4.1-3">In addition, the VDAF provides the following types:<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.1-4.1">
+            <code>Measurement</code> is the type measurement type used by a client during the
+sharding phase (<a href="#sec-vdaf-shard" class="xref">Section 4.3</a>).<a href="#section-4.1-4.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.1-4.2">
+            <code>PublicParam</code> is the type of public parameter used by a Client during the
+sharding phase.<a href="#section-4.1-4.2" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.1-4.3">
+            <code>VerifyParam</code> is the type of verification parameter used by each
+Aggregator during the preparation phase (<a href="#sec-vdaf-prepare" class="xref">Section 4.4</a>).<a href="#section-4.1-4.3" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.1-4.4">
+            <code>AggParam</code> is the type of aggregation parameter used by each Aggregator
+during the preparation phase.<a href="#section-4.1-4.4" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.1-4.5">
+            <code>OutShare</code> is the type of each output share recovered by the Aggregators
+during the preparation phase.<a href="#section-4.1-4.5" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.1-4.6">
+            <code>AggShare</code> is the type of result of combining a sequence of output shares
+during the aggregation phase (<a href="#sec-vdaf-aggregate" class="xref">Section 4.5</a>).<a href="#section-4.1-4.6" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.1-4.7">
+            <code>AggResult</code> is the type of aggregate result (<a href="#sec-vdaf-unshard" class="xref">Section 4.6</a>).<a href="#section-4.1-4.7" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.1-4.8">
+            <code>Prep</code> represents the state of an Aggregator during the preparation
+phase. This class implements the interface described in <a href="#sec-vdaf-prepare" class="xref">Section 4.4</a>.<a href="#section-4.1-4.8" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+<div id="sec-vdaf-setup">
+<section id="section-4.2">
+        <h3 id="name-setup">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-setup" class="section-name selfRef">Setup</a>
+        </h3>
+<p id="section-4.2-1">Before execution of the VDAF can begin, it is necessary to distribute long-lived
+parameters to the Client and Aggregators. The long-lived parameters are
+generated by the following algorithm:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.2-2.1">
+            <code>Vdaf.setup() -&gt; (PublicParam, Vec[VerifyParam])</code> is the randomized setup
+algorithm used to generate the public parameter used by the Clients and the
+verification parameters used by the Aggregators. The length of the latter <span class="bcp14">MUST</span>
+be equal to <code>SHARES</code>. In general, an Aggregator's verification parameter is
+considered secret and <span class="bcp14">MUST NOT</span> be revealed to the Clients, Collector or other
+Aggregators. The parameters <span class="bcp14">MAY</span> be reused across multiple VDAF evaluations.
+See <a href="#security" class="xref">Section 8</a> for a discussion of the security implications this has
+depending on the threat model.<a href="#section-4.2-2.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+<div id="sec-vdaf-shard">
+<section id="section-4.3">
+        <h3 id="name-sharding">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-sharding" class="section-name selfRef">Sharding</a>
+        </h3>
+<p id="section-4.3-1">In order to protect the privacy of its measurements, a VDAF client splits its
+measurements into "input shares".  The <code>measurement_to_input_shares</code> method is
+executed by the client to produce these shares.  One share is sent to each
+aggregator.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.3-2.1">
+            <code>Vdaf.measurement_to_input_shares(public_param: PublicParam, input:
+Measurement) -&gt; Vec[Bytes]</code> is the randomized input-distribution algorithm run
+by each Client. It consumes the public parameter and input measurement and
+produces a sequence of input shares, one for each Aggregator. The length of
+the output <span class="bcp14">MUST</span> be <code>SHARES</code>.<a href="#section-4.3-2.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<span id="name-the-client-divides-its-meas"></span><div id="shard-flow">
+<figure id="figure-2">
+          <div class="alignLeft art-text artwork" id="section-4.3-3.1">
+<pre>
+    Client
+    ======
+
+    measurement
+      |
+      V
+    +----------------------------------------------+
+    | measurement_to_input_shares                  |
+    +----------------------------------------------+
+      |              |              ...  |
+      V              V                   V
+     input_share_0  input_share_1       input_share_[SHARES-1]
+      |              |              ...  |
+      V              V                   V
+    Aggregator 0   Aggregator 1        Aggregator SHARES-1
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-the-client-divides-its-meas" class="selfRef">The Client divides its measurement input into input shares and distributes them to the Aggregators.</a>
+          </figcaption></figure>
+</div>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-4.3-4.1">
+            <p id="section-4.3-4.1.1">CP The <code>public_param</code> is intended to allow for protocols that require the
+Client to use a public key for sharding its measurement. When rotating the
+<code>verify_param</code> for such a scheme, it would be necessary to also update the
+<code>public_param</code> with which the clients are configured. For PPM it would be nice
+if we could rotate the <code>verify_param</code> without also having to update the
+clients. We should consider dropping this at some point.<a href="#section-4.3-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="sec-vdaf-prepare">
+<section id="section-4.4">
+        <h3 id="name-preparation">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-preparation" class="section-name selfRef">Preparation</a>
+        </h3>
+<p id="section-4.4-1">To recover and verify output shares, the Aggregators interact with one another
+over <code>ROUNDS</code> rounds. Prior to each round, each Aggregator constructs an
+outbound message. Next, the sequence of outbound messages produced by the
+Aggregators is combined into a single message, called a "preparation message".
+(Each of the outbound messages are called "preparation-message shares".)
+Finally, the preparation message is distributed to the Aggregators to begin the
+next round.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">An aggregator begins the first round with its input share and it begins each
+subsequent round with the previous preparation message. The aggregator's output
+in the last round is its output share and its output in each of the preceding
+rounds is a preparation-message share.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<p id="section-4.4-3">This process involves a value called the "aggregation parameter" used to map the
+input shares to output shares. The Aggregators need to agree on this parameter
+before they can begin preparing inputs for aggregation.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<span id="name-vdaf-preparation-process-on"></span><div id="prep-flow">
+<figure id="figure-3">
+          <div class="alignLeft art-text artwork" id="section-4.4-4.1">
+<pre>
+    Aggregator 0   Aggregator 1        Aggregator SHARES-1
+    ============   ============        ===================
+
+    input_share_0  input_share_1       input_share_[SHARES-1]
+      |              |              ...  |
+      V              V                   V
+    +-----------+  +-----------+       +-----------+
+    | prep_init |  | prep_init |       | prep_init |
+    +-----------+  +------------+      +-----------+
+      |              |              ...  |             \
+      V              V                   V             |
+    +-----------+  +-----------+       +-----------+   |
+    | prep_next |  | prep_next |       | prep_next |   |
+    +-----------+  +-----------+       +-----------+   |
+      |              |              ...  |             |
+      V              V                   V             | x ROUNDS
+    +----------------------------------------------+   |
+    | prep_shares_to_prep                          |   |
+    +----------------------------------------------+   |
+                     |                                 |
+      +--------------+-------------------+             |
+      |              |              ...  |             |
+      V              V                   V             /
+     ...            ...                 ...
+      |              |                   |
+      V              V                   V
+    +-----------+  +-----------+       +-----------+
+    | prep_next |  | prep_next |       | prep_next |
+    +-----------+  +-----------+       +-----------+
+      |              |              ...  |
+      V              V                   V
+    out_share_0    out_share_1         out_share_[SHARES-1]
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-vdaf-preparation-process-on" class="selfRef">VDAF preparation process on the input shares for a single measurement. At the end of the computation, each Aggregator holds an output share or an error.</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.4-5">To facilitate the preparation process, a concerete VDAF implements the following
+class methods:<a href="#section-4.4-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-6.1">
+            <code>Vdaf.prep_init(verify_param: VerifyParam, agg_param: AggParam, nonce: Bytes,
+input_share: Bytes) -&gt; Prep</code> is the deterministic preparation-state
+initialization algorithm run by each Aggregator to begin processing its input
+share into an output share. Its inputs are the aggregator's verification
+parameter (<code>verify_param</code>), the aggregation parameter (<code>agg_param</code>), the nonce
+provided by the environment (<code>nonce</code>, see <a href="#run-vdaf" class="xref">Figure 6</a>), and one of the input
+shares generated by the client (<code>input_share</code>). Its output is the Aggregator's
+initial preparation state.<a href="#section-4.4-6.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.4-6.2">
+            <code>Vdaf.prep_next(prep: Prep, inbound: Optional[Bytes]) -&gt; Union[Tuple[Prep,
+Bytes], OutShare]</code> is the deterministic preparation-state update algorithm run
+by each Aggregator. It updates the Aggregator's preparation state (<code>prep</code>) and
+returns either its next preparation state and its message share for the
+current round or, if this is the last round, its output share. An exception is
+raised if a valid output share could not be recovered. The input of this
+algorithm is the inbound preparation message or, if this is the first round,
+<code>None</code>.<a href="#section-4.4-6.2" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-4.4-6.3">
+            <code>Vdaf.prep_shares_to_prep(agg_param: AggParam, prep_shares: Vec[Bytes]) -&gt;
+Bytes</code> is the deterministc preparation-message preprocessing algorithm. It
+combines the preperation-message shares generated by the Aggregators in the
+previous round into the pepration message consumed by each in the next round.<a href="#section-4.4-6.3" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-4.4-7">In effect, each Aggregator moves through a linear state machine with <code>ROUNDS+1</code>
+states.  The Aggregator enters the first state on using the initialization
+algorithm, and the update algorithm advances the Aggregator to the next state.
+Thus, in addition to defining the number of rounds (<code>ROUNDS</code>), a VDAF instance
+defines the state of the Aggregator after each round.<a href="#section-4.4-7" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-4.4-8.1">
+            <p id="section-4.4-8.1.1">TODO Consider how to bake this "linear state machine" condition into the
+syntax. Given that Python 3 is used as our pseudocode, it's easier to specify
+the preparation state using a class.<a href="#section-4.4-8.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.4-9">The preparation-state update accomplishes two tasks that are essential to most
+schemes: recovery of output shares from the input shares, and a multi-party
+computation carried out by the Aggregators to ensure that their output shares
+are valid. The VDAF abstraction boundary is drawn so that an Aggregator only
+recovers an output share if it is deemed valid (at least, based on the
+Aggregator's view of the protocol). Another way to draw this boundary would be
+to have the Aggregators recover output shares first, then verify that they are
+valid. However, this would allow the possibility of misusing the API by, say,
+aggregating an invalid output share. Moreover, in protocols like Prio+
+<span>[<a href="#AGJOP21" class="xref">AGJOP21</a>]</span> based on oblivious transfer, it is necessary for the Aggregators to
+interact in order to recover output shares at all.<a href="#section-4.4-9" class="pilcrow">¶</a></p>
+<p id="section-4.4-10">Note that it is possible for a VDAF to specify <code>ROUNDS == 0</code>, in which case
+each Aggregator runs the preparation-state update algorithm once and immediately
+recovers its output share without interacting with the other Aggregators.
+However, most, if not all, constructions will require some amount of interaction
+in order to ensure validity of the output shares (while also maintaining
+privacy).<a href="#section-4.4-10" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-4.4-11.1">
+            <p id="section-4.4-11.1.1">OPEN ISSUE Depending on what we do for issue#20, we may end up needeing to
+revise the above paragraph.<a href="#section-4.4-11.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="sec-vdaf-aggregate">
+<section id="section-4.5">
+        <h3 id="name-aggregation">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-aggregation" class="section-name selfRef">Aggregation</a>
+        </h3>
+<p id="section-4.5-1">Once an Aggregator holds validated output shares for a batch of measurements
+(where batches are defined by the application), it combines them into a share of
+the desired aggregate result.  This algorithm is performed locally at each
+Aggregator, without communication with the other Aggregators.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.5-2.1">
+            <code>Vdaf.out_shares_to_agg_share(agg_param: AggParam, output_shares:
+Vec[OutShare]) -&gt; agg_share: AggShare</code> is the deterministic aggregation
+algorithm. It is run by each Aggregator over the output shares it has computed
+over a batch of measurement inputs.<a href="#section-4.5-2.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<span id="name-aggregation-of-output-share"></span><div id="agg-flow">
+<figure id="figure-4">
+          <div class="alignLeft art-text artwork" id="section-4.5-3.1">
+<pre>
+    Aggregator 0    Aggregator 1        Aggregator SHARES-1
+    ============    ============        ===================
+
+    out_share_0_0   out_share_1_0       out_share_[SHARES-1]_0
+    out_share_0_1   out_share_1_1       out_share_[SHARES-1]_1
+    out_share_0_2   out_share_1_2       out_share_[SHARES-1]_2
+         ...             ...                     ...
+    out_share_0_B   out_share_1_B       out_share_[SHARES-1]_B
+      |               |                   |
+      V               V                   V
+    +-----------+   +-----------+       +-----------+
+    | out2agg   |   | out2agg   |   ... | out2agg   |
+    +-----------+   +-----------+       +-----------+
+      |               |                   |
+      V               V                   V
+    agg_share_0     agg_share_1         agg_share_[SHARES-1]
+</pre>
+</div>
+<figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
+<a href="#name-aggregation-of-output-share" class="selfRef">Aggregation of output shares. `B` indicates the number of measurements in the batch.</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.5-4">For simplicity, we have written this algorithm and the unsharding algorithm
+below in "one-shot" form, where all shares for a batch are provided at the same
+time.  Some VDAFs may also support a "streaming" form, where shares are
+processed one at a time.<a href="#section-4.5-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-vdaf-unshard">
+<section id="section-4.6">
+        <h3 id="name-unsharding">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-unsharding" class="section-name selfRef">Unsharding</a>
+        </h3>
+<p id="section-4.6-1">After the Aggregators have aggregated a sufficient number of output shares, each
+sends its aggregate share to the Collector, who runs the following algorithm to
+recover the following output:<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.6-2.1">
+            <code>Vdaf.agg_shares_to_result(agg_param: AggParam, agg_shares:
+Vec[AggShare]) -&gt; AggResult</code> is run by the Collector in order to compute the
+aggregate result from the Aggregators' shares. The length of <code>agg_shares</code> <span class="bcp14">MUST</span>
+be <code>SHARES</code>. This algorithm is deterministic.<a href="#section-4.6-2.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<span id="name-computation-of-the-final-ag"></span><div id="unshard-flow">
+<figure id="figure-5">
+          <div class="alignLeft art-text artwork" id="section-4.6-3.1">
+<pre>
+    Aggregator 0    Aggregator 1        Aggregator SHARES-1
+    ============    ============        ===================
+
+    agg_share_0     agg_share_1         agg_share_[SHARES-1]
+      |               |                   |
+      V               V                   V
+    +-----------------------------------------------+
+    | agg_shares_to_result                          |
+    +-----------------------------------------------+
+      |
+      V
+    agg_result
+
+    Collector
+    =========
+</pre>
+</div>
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<a href="#name-computation-of-the-final-ag" class="selfRef">Computation of the final aggregate result from aggregate shares.</a>
+          </figcaption></figure>
+</div>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-4.6-4.1">
+            <p id="section-4.6-4.1.1">QUESTION Maybe the aggregation algorithms should be randomized in order to
+allow the Aggregators (or the Collector) to add noise for differential
+privacy. (See the security considerations of <span>[<a href="#I-D.draft-gpew-priv-ppm" class="xref">I-D.draft-gpew-priv-ppm</a>]</span>.) Or
+is this out-of-scope of this document?<a href="#section-4.6-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="execution">
+<section id="section-4.7">
+        <h3 id="name-execution-of-a-vdaf">
+<a href="#section-4.7" class="section-number selfRef">4.7. </a><a href="#name-execution-of-a-vdaf" class="section-name selfRef">Execution of a VDAF</a>
+        </h3>
+<p id="section-4.7-1">Executing a VDAF involves the concurrent evaluation of the VDAF on individual
+inputs and aggregation of the recovered output shares. This is captured by the
+following example algorithm:<a href="#section-4.7-1" class="pilcrow">¶</a></p>
+<span id="name-execution-of-a-vdaf-2"></span><div id="run-vdaf">
+<figure id="figure-6">
+          <div class="alignLeft art-text artwork" id="section-4.7-2.1">
+<pre>
+def run_vdaf(Vdaf,
+             agg_param: Vdaf.AggParam,
+             nonces: Vec[Bytes],
+             measurements: Vec[Vdaf.Measurement]):
+    # Distribute long-lived parameters.
+    (public_param, verify_params) = Vdaf.setup()
+
+    out_shares = []
+    for (nonce, measurement) in zip(nonces, measurements):
+        # Each Client shards its input into shares.
+        input_shares = Vdaf.measurement_to_input_shares(public_param,
+                                                        measurement)
+
+        # Each Aggregator initializes its preparation state.
+        prep_states = []
+        for j in range(Vdaf.SHARES):
+            state = Vdaf.prep_init(verify_params[j],
+                                   agg_param,
+                                   nonce,
+                                   input_shares[j])
+            prep_states.append(state)
+
+        # Aggregators recover their output shares.
+        inbound = None
+        for i in range(Vdaf.ROUNDS+1):
+            outbound = []
+            for j in range(Vdaf.SHARES):
+                out = Vdaf.prep_next(prep_states[j], inbound)
+                if i &lt; Vdaf.ROUNDS:
+                    (prep_states[j], out) = out
+                outbound.append(out)
+            # This is where we would send messages over the network
+            # in a distributed VDAF computation.
+            if i &lt; Vdaf.ROUNDS:
+                inbound = Vdaf.prep_shares_to_prep(agg_param,
+                                                   outbound)
+
+        # The final outputs of prepare phasre are the output shares.
+        out_shares.append(outbound)
+
+    # Each Aggregator aggregates its output shares into an aggregate
+    # share.
+    agg_shares = []
+    for j in range(Vdaf.SHARES):
+        out_shares_j = [out[j] for out in out_shares]
+        agg_share_j = Vdaf.out_shares_to_agg_share(agg_param,
+                                                   out_shares_j)
+        agg_shares.append(agg_share_j)
+
+    # Collector unshards the aggregate.
+    return Vdaf.agg_shares_to_result(agg_param, agg_shares)
+</pre>
+</div>
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
+<a href="#name-execution-of-a-vdaf-2" class="selfRef">Execution of a VDAF.</a>
+          </figcaption></figure>
+</div>
+<p id="section-4.7-3">The inputs to this algorithm are the aggregation parameter <code>agg_param</code>, a list
+of nonces <code>nonces</code>, and a batch of Client inputs <code>input_batch</code>. The aggregation
+parameter is chosen by the Aggregators prior to executing the VDAF. This
+document does not specify how the nonces are chosen, but some of our security
+considerations require that the nonces be unique for each VDAF evaluation. See
+<a href="#security" class="xref">Section 8</a> for details.<a href="#section-4.7-3" class="pilcrow">¶</a></p>
+<p id="section-4.7-4">Another important question this document leaves out of scope is how a VDAF is to
+be executed by Aggregators distributed over a real network. Algorithm <code>run_vdaf</code>
+prescribes the protocol's execution in a "benign" environment in which there is
+no adversary and messages are passed among the protocol participants over secure
+point-to-point channels. In reality, these channels need to be instantiated by
+some "wrapper protocol", such as <span>[<a href="#I-D.draft-gpew-priv-ppm" class="xref">I-D.draft-gpew-priv-ppm</a>]</span> that implements
+suitable cryptographic functionalities. Moreover, some fraction of the
+Aggregators (or Clients) may be malicious and diverge from their prescribed
+behaviors. <a href="#security" class="xref">Section 8</a> describes the execution of the VDAF in various
+adversarial environments and what properties the wrapper protocol needs to
+provide in each.<a href="#section-4.7-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="prelim">
+<section id="section-5">
+      <h2 id="name-preliminaries">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-preliminaries" class="section-name selfRef">Preliminaries</a>
+      </h2>
+<p id="section-5-1">This section describes the primitives that are common to the VDAFs specified in
+this document.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="field">
+<section id="section-5.1">
+        <h3 id="name-finite-fields">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-finite-fields" class="section-name selfRef">Finite Fields</a>
+        </h3>
+<p id="section-5.1-1">Both <code>prio3</code> and <code>poplar1</code> use finite fields with characteristic 1, i.e., the
+field <code>GF(p)</code> for some prime <code>p</code>. Finite field elements are represented by a
+class <code>Field</code> with the following associated parameters:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-2.1">
+            <code>ENCODED_SIZE: Unsigned</code> is the number of bytes used to encode a field element
+as a byte string.<a href="#section-5.1-2.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-5.1-3">A concrete <code>Field</code> also implements the following class methods:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-4.1">
+            <code>Field.zeros(length: Unsigned) -&gt; output: Vec[Field]</code> returns a vector of
+zeros. The length of <code>output</code> <span class="bcp14">MUST</span> be <code>length</code>.<a href="#section-5.1-4.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-5.1-4.2">
+            <code>Field.rand_vec(length: Unsigned) -&gt; output: Vec[Field]</code> returns a vector of
+random field elements. The length of <code>output</code> <span class="bcp14">MUST</span> be <code>length</code>.<a href="#section-5.1-4.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-5.1-5">A field element is an instance of a concrete <code>Field</code>. The concrete class defines
+the usual arithmetic operations on field elements. In addition, it defines the
+following instance method for converting a field element to an unsigned integer:<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-6.1">
+            <code>elem.as_unsigned() -&gt; Unsigned</code> returns the integer representation of
+field element <code>elem</code>.<a href="#section-5.1-6.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-5.1-7">Likewise, each concrete <code>Field</code> implements a constructor for coverting an
+unsigned integer into a field element:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-8.1">
+            <code>Field(integer: Unsigned)</code> returns <code>integer</code> represented as a field element.<a href="#section-5.1-8.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-5.1-9">Finally, each concerete <code>Field</code> has two derived class methods, one for encoding
+a vector of field elements as a byte string and another for decoding a vector of
+field elements.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<span id="name-derived-class-methods-for-f"></span><div id="field-derived-methods">
+<figure id="figure-7">
+          <div class="alignLeft art-text artwork" id="section-5.1-10.1">
+<pre>
+def encode_vec(Field, vec: Vec[Field]) -&gt; Bytes:
+    encoded = Bytes()
+    for x in vec:
+        encoded += I2OSP(x.as_unsigned(), Field.ENCODED_SIZE)
+    return encoded
+
+def decode_vec(Field, encoded: Bytes) -&gt; Vec[Field]:
+    L = Field.ENCODED_SIZE
+    if len(encoded) % L != 0:
+        raise ERR_DECODE
+
+    vec = []
+    for i in range(0, len(encoded), L):
+        encoded_x = encoded[i:i+L]
+        x = Field(OS2IP(encoded_x))
+        vec.append(x)
+    return vec
+</pre>
+</div>
+<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
+<a href="#name-derived-class-methods-for-f" class="selfRef">Derived class methods for finite fields.</a>
+          </figcaption></figure>
+</div>
+<div id="inner-product-of-vectors">
+<section id="section-5.1.1">
+          <h4 id="name-inner-product-of-vectors">
+<a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-inner-product-of-vectors" class="section-name selfRef">Inner product of Vectors</a>
+          </h4>
+<p id="section-5.1.1-1">The following method is defined for computing the inner product of two vectors:<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.1-2"><code>
+def inner_product(left: Vec[Field], right: Vec[Field]) -&gt; Field:
+    result = Field(0)
+    for (x, y) in zip(left, right):
+        result += x * y
+    return result
+</code><a href="#section-5.1.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="parameters">
+<section id="section-5.1.2">
+          <h4 id="name-parameters">
+<a href="#section-5.1.2" class="section-number selfRef">5.1.2. </a><a href="#name-parameters" class="section-name selfRef">Parameters</a>
+          </h4>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5.1.2-1.1">
+              <p id="section-5.1.2-1.1.1">TODO: Pick field parameters and specify them here. See issue#22.<a href="#section-5.1.2-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="prg">
+<section id="section-5.2">
+        <h3 id="name-pseudorandom-generators">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-pseudorandom-generators" class="section-name selfRef">Pseudorandom Generators</a>
+        </h3>
+<p id="section-5.2-1">A pseudorandom generator (PRG) is used to expand a short, (pseudo)random seed
+into a long string of pseudorandom bits. A PRG suitable for this document
+implements the interface specified in this section. Concrete constructions are
+described in <a href="#prg-constructions" class="xref">Section 5.2.1</a>.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">PRGs are defined by a class <code>Prg</code> with a single parameter:<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.2-3.1">
+            <code>SEED_SIZE: Unsigned</code> is the size of the input seed.<a href="#section-5.2-3.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-5.2-4">A concrete <code>Prg</code> implements the following class method:<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.2-5.1">
+            <code>Prg.expand(seed: Bytes, info: Bytes, length: Unsigned) -&gt; Bytes</code> derives a
+byte string from the given seed and info string. The length of the output <span class="bcp14">MUST</span>
+be <code>length</code>.<a href="#section-5.2-5.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5.2-6.1">
+            <p id="section-5.2-6.1.1">TODO Specify a generic method for mapping the PRG output to a sequence of
+field elements.<a href="#section-5.2-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<div id="prg-constructions">
+<section id="section-5.2.1">
+          <h4 id="name-constructions">
+<a href="#section-5.2.1" class="section-number selfRef">5.2.1. </a><a href="#name-constructions" class="section-name selfRef">Constructions</a>
+          </h4>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5.2.1-1.1">
+              <p id="section-5.2.1-1.1.1">TODO<a href="#section-5.2.1-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="prio3">
+<section id="section-6">
+      <h2 id="name-prio3">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-prio3" class="section-name selfRef">prio3</a>
+      </h2>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6-1.1">
+          <p id="section-6-1.1.1">NOTE This construction has not undergone significant security analysis.<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-6-2">This section describes a VDAF suitable for the following data aggregation task.
+Each Client measurement is encoded as a vector over a finite field, and the
+aggregate is computed by summing the vectors element-wise. Validity is defined
+by an arithmetic circuit <code>C</code> that takes as input a vector of field elements <code>x</code>:
+if <code>C(x) == 0</code>, then we say that <code>x</code> is valid; otherwise, we say that <code>x</code> is
+invalid.  A number of useful measurement types can be defined this way:<a href="#section-6-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6-3.1">Simples statistics, like sum, average, and standard deviation;<a href="#section-6-3.1" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-6-3.2">Estimation of quantiles, via a histogram; and<a href="#section-6-3.2" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-6-3.3">Linear regression.<a href="#section-6-3.3" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-6-4">This VDAF does not have an aggregation parameter. Instead, the output share is
+derived from an input share by applying a fixed map. See <a href="#poplar1" class="xref">Section 7</a> for an
+example of a VDAF that makes meaningful use of the aggregation parameter.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-5">While the construction is derived from the original Prio system <span>[<a href="#CGB17" class="xref">CGB17</a>]</span>,
+<code>prio3</code> takes advantage of optimizations described later in <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span> that
+improve communication complexity significantly. The etymology of the term
+<code>prio3</code> is that it descends from the original Prio construction. A second
+iteration was deployed in the <span>[<a href="#ENPA" class="xref">ENPA</a>]</span> system, and like the VDAF described here,
+the ENPA system was built from techniques introduced by <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span>. However,
+that system was specialized for a particular measurement type. The goal of
+<code>prio3</code> is to provide the same level of generality as the original system.<a href="#section-6-5" class="pilcrow">¶</a></p>
+<p id="section-6-6">The way <code>prio3</code> ensures privacy is quite simple: the Client shards its encoded
+input vector <code>x</code> into a number of additive secret shares, one for each
+Aggregator. Each Aggregator sums up its vector shares locally, and once enough
+shares have been aggregated, sends its share of the result to the Collector, who
+recovers the aggregate result by adding up the vectors.<a href="#section-6-6" class="pilcrow">¶</a></p>
+<p id="section-6-7">The main problem that needs to be solved is to verify that the additive shares
+generated by the Client add up to a valid input <code>x</code>, i.e., that <code>C(x)=0</code>. The
+solution devised by <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span> uses what they call a zero-knowledge proof
+system on distributed data. Viewing the Client as the prover and the Aggregators
+as the (distributed) verifier, the goal is to devise a protocol by which the
+Client convinces the Aggregators that they hold secret shares of a valid input,
+without revealing the input itself.<a href="#section-6-7" class="pilcrow">¶</a></p>
+<p id="section-6-8">The core tool for accomplishing this task is a refinement of Probabilistically
+Checkable Proof (PCP) systems called a Fully Linear Proof (FLP) system.  We
+describe FLPs in detail below. Briefly, the Client generates a "proof" of its
+input's validity and distributes additive shares of the proof among the
+Aggregators. Each Aggregator then performs a computation on its input share and
+proof share locally and sends the result to the other Aggregators. Combining the
+exchanged messages allows each Aggregator to decide if it holds a share of a valid input.<a href="#section-6-8" class="pilcrow">¶</a></p>
+<p id="section-6-9"><code>prio3</code> can be viewed as a transformation of a particular class of FLP systems
+into a VDAF. The next section specified the syntax of suitable FLPs in detail.
+The transformation is given in <a href="#prio3-construction" class="xref">Section 6.2</a>.<a href="#section-6-9" class="pilcrow">¶</a></p>
+<div id="flp">
+<section id="section-6.1">
+        <h3 id="name-fully-linear-proof-flp-syst">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-fully-linear-proof-flp-syst" class="section-name selfRef">Fully Linear Proof (FLP) Systems</a>
+        </h3>
+<p id="section-6.1-1">Conceptually, an FLP system is a two-party protocol executed by a prover and a
+verifier. In actual use, however, the prover's computation is carried out by the
+Client, and the verifier's computation is distributed among the Aggregators.
+(More on this in <a href="#prio3-construction" class="xref">Section 6.2</a>.)<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">As usual, we will describe the interface implemented by a concrete FLP in terms
+of an abstraction base class <code>Flp</code> that specifies the set of methods, constants,
+and types a concrete FLP must provide.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.1-3">First, a concrete FLP defines the following constants:<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.1-4.1">
+            <code>PROVE_RAND_LEN: Unsigned</code> is the length of the prover randomness, i.e., the
+amount of randomness consumed by the prover. This number of random field
+elements are provided to the prover for generating the proof. (See below for
+an explanation.)<a href="#section-6.1-4.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-4.2">
+            <code>QUERY_RAND_LEN: Unsigned</code> is the length of the query randomness, i.e., the
+amount of randomness consumed by the verifier.<a href="#section-6.1-4.2" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-4.3">
+            <code>JOINT_RAND_LEN: Unsigned</code> is the length of the joint randomness in number of
+field elements. The joint randomness is the randomness consumed by by both the
+prover and verifier.<a href="#section-6.1-4.3" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-4.4">
+            <code>INPUT_LEN: Unsigned</code> is the number of field elements comprising an input. A
+measurement is encoded as a vector of this length before the proof is
+generated. (See <a href="#flp-encode" class="xref">Section 6.1.1</a> for details.)<a href="#section-6.1-4.4" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-4.5">
+            <code>OUTPUT_LEN: Unsigned</code> is the length of the aggregable output. (See
+<a href="#flp-encode" class="xref">Section 6.1.1</a>.)<a href="#section-6.1-4.5" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-4.6">
+            <code>PROOF_LEN: Unsigned</code> is the length of the proof in number of field elements.<a href="#section-6.1-4.6" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-4.7">
+            <code>VERIFIER_LEN: Unsigned</code> is the length of the verifier message generated by
+querying an input and proof. (See below for an explanation.)<a href="#section-6.1-4.7" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-6.1-5">A concerte FLP also defines an associated type:<a href="#section-6.1-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.1-6.1">
+            <code>Field</code> is the finite field for which the FLP is defined. This object is
+compatible with the interface described in <a href="#field" class="xref">Section 5.1</a>.<a href="#section-6.1-6.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-6.1-7">An FLP specifies the following algorithms for generating and verifying proofs of
+validity for encoded inputs (encoding is described below in <a href="#flp-encode" class="xref">Section 6.1.1</a>):<a href="#section-6.1-7" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.1-8.1">
+            <code>Flp.prove(input: Vec[Field], prove_rand: Vec[Field], joint_rand: Vec[Field])
+-&gt; Vec[Field]</code> is the deterministic proof-generation algorithm run by the
+prover. Its inputs are the encoded input, the "prover randomness"
+<code>prove_rand</code>, and the "joint randomness" <code>joint_rand</code>. The proof randomness is
+used only by the prover, but the joint randomness is shared by both the prover
+and verifier. Type <code>Field</code> is a finite field as defined in <a href="#field" class="xref">Section 5.1</a>.<a href="#section-6.1-8.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-8.2">
+            <code>Flp.query(input: Vec[Field], proof: Vec[Field], query_rand: Vec[Field],
+joint_rand: Vec[Field]) -&gt; Vec[Field]</code> is the query-generation
+algorithm run by the verifier. This is is used to "query" the input and proof.
+The result of the query (i.e., the output of this function) is called the
+"verifier message". In addition to the input and proof, this algorithm takes
+as input the query randomness <code>query_rand</code> and the joint randomness
+<code>joint_rand</code>. The former is used only by the verifier, but the latter is the
+same randomness used by the prover.<a href="#section-6.1-8.2" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-6.1-8.3">
+            <code>Flp.decide(verifier: Vec[Field]) -&gt; Bool</code> is the deterministic decision
+algorithm run by the verifier. It takes as input the verifier message and
+outputs a boolean indicating if the input from whence it was generated is
+valid.<a href="#section-6.1-8.3" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-6.1-9">Our application requires that the FLP is "fully linear" in the sense defined in
+<span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span>. This property amounts essentially to a syntactic restriction on
+the proof systeem. As a practical matter, what this property implies is that the
+query-generation algorithm can be run by each Aggregator locally on its share of
+the input and proof, and the results can be combined to recover the verifier
+message. In the remainder, the result generated by an aggregator will be
+referred to as its "verifier share".<a href="#section-6.1-9" class="pilcrow">¶</a></p>
+<p id="section-6.1-10">An FLP is executed by the prover and verifier as follows:<a href="#section-6.1-10" class="pilcrow">¶</a></p>
+<span id="name-execution-of-an-flp"></span><div id="run-flp">
+<figure id="figure-8">
+          <div class="alignLeft art-text artwork" id="section-6.1-11.1">
+<pre>
+def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
+    joint_rand = Flp.Field.rand_vec(Flp.JOINT_RAND_LEN)
+    prove_rand = Flp.Field.rand_vec(Flp.PROVE_RAND_LEN)
+    query_rand = Flp.Field.rand_vec(Flp.QUERY_RAND_LEN)
+
+    # Prover generates the proof.
+    proof = Flp.prove(inp, prove_rand, joint_rand)
+
+    # Verifier queries the input and proof.
+    verifier = Flp.query(
+        inp, proof, query_rand, joint_rand, num_shares)
+
+    # Verifier decides if the input is valid.
+    return Flp.decide(verifier)
+</pre>
+</div>
+<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
+<a href="#name-execution-of-an-flp" class="selfRef">Execution of an FLP.</a>
+          </figcaption></figure>
+</div>
+<p id="section-6.1-12">The proof system is constructed so that, if <code>input</code> is a valid input, then
+<code>run_flp(Flp,. input)</code> always returns <code>True</code>. On the other hand, if <code>input</code> is
+invalid, then as long as <code>joint_rand</code> and <code>query_rand</code> are generated uniform
+randomly, the output is <code>False</code> with overwhelming probability. In addition, the
+proof system is designed so that the verifier message leaks nothing about the
+input (in an information theoretic sense). See Definition 3.9 from <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span>
+for details.<a href="#section-6.1-12" class="pilcrow">¶</a></p>
+<p id="section-6.1-13">We remark that <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span> defines a much larger class of fully linear proof
+systems than we consider here. In particular, what is called an "FLP" here is
+called a 1.5-round, public-coin, interactive oracle proof system in their paper.<a href="#section-6.1-13" class="pilcrow">¶</a></p>
+<div id="flp-encode">
+<section id="section-6.1.1">
+          <h4 id="name-encoding-the-input">
+<a href="#section-6.1.1" class="section-number selfRef">6.1.1. </a><a href="#name-encoding-the-input" class="section-name selfRef">Encoding the Input</a>
+          </h4>
+<p id="section-6.1.1-1">The type of measurement being aggregated is defined by the FLP. Hence, the FLP
+also specifies a method of encoding raw measurements as a vector of field
+elements:<a href="#section-6.1.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.1.1-2.1">
+              <code>Flp.encode(measurement: Measurement) -&gt; Vec[Field]</code> encodes a raw measurement
+as a vector of field elements. The return value <span class="bcp14">MUST</span> be of length <code>INPUT_LEN</code>.
+An error is raised if the measurement cannot be represented as a valid input.<a href="#section-6.1.1-2.1" class="pilcrow">¶</a>
+</li>
+          </ul>
+<p id="section-6.1.1-3">In addition, for some FLPs, the encoded input includes redundant field elements
+that are useful for checking the proof, but which are not needed after the proof
+has been checked. Thus the FLP defines an algorithm for truncating the input to
+the length of the aggregated output:<a href="#section-6.1.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.1.1-4.1">
+              <code>Flp.truncate(input: Vec[Field]) -&gt; Vec[Field]</code> maps an encoded input to an
+aggregable output. The length of the input <span class="bcp14">MUST</span> be <code>INPUT_LEN</code> and the length
+of the output <span class="bcp14">MUST</span> be <code>OUTPUT_LEN</code>.<a href="#section-6.1.1-4.1" class="pilcrow">¶</a>
+</li>
+          </ul>
+<p id="section-6.1.1-5">The need for the truncation method arises from the observation that some FLPs
+encode redundancy into the input that is used for proof generation; and once the
+proof is checked, the redundancy can be removed before aggregating. An example
+is the "integer sum" data type from <span>[<a href="#CGB17" class="xref">CGB17</a>]</span> in which an integer in range <code>[0,
+2^k)</code> is encoded as a vectot of <code>k</code> field elements. Taken together, these two
+functionalities correspond roughly to the notion of Affine-aggregatable
+encodings (AFEs) from <span>[<a href="#CGB17" class="xref">CGB17</a>]</span>.<a href="#section-6.1.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="prio3-construction">
+<section id="section-6.2">
+        <h3 id="name-construction">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-construction" class="section-name selfRef">Construction</a>
+        </h3>
+<p id="section-6.2-1">This section specifies <code>Prio3</code>, an implementation of the <code>Vdaf</code> interface
+(<a href="#vdaf" class="xref">Section 4</a>). It has two generic parameters: an <code>Flp</code> (<a href="#flp" class="xref">Section 6.1</a>) and a <code>Prg</code>
+(<a href="#prg" class="xref">Section 5.2</a>). The associated constants and types required by the <code>Vdaf</code> interface
+are defined in <a href="#prio3-param" class="xref">Table 1</a>. The methods required for sharding, preparation,
+aggregation, and unsharding are desribed in the remaining subsections.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<span id="name-associated-parameters-for-t"></span><div id="prio3-param">
+<table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-associated-parameters-for-t" class="selfRef">Associated parameters for the prio3 VDAF.</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Parameter</th>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>ROUNDS</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>1</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>SHARES</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">in range <code>[2, 255)</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Measurement</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Flp.Measurement</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>PublicParam</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>None</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>VerifyParam</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Tuple[Unsigned, Bytes]</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>AggParam</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>None</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Prep</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Tuple[Vec[Flp.Field], Optional[Bytes], Bytes]</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>OutShare</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Vec[Flp.Field]</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>AggShare</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Vec[Flp.Field]</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>AggResult</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Vec[Unsigned]</code>
+</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<div id="setup">
+<section id="section-6.2.1">
+          <h4 id="name-setup-2">
+<a href="#section-6.2.1" class="section-number selfRef">6.2.1. </a><a href="#name-setup-2" class="section-name selfRef">Setup</a>
+          </h4>
+<p id="section-6.2.1-1">The setup algorithm generates a symmetric key shared by all of the Aggregators.
+The key is used to derive unique joint randomness for the FLP query-generation
+algorithm run by the aggregators during preparation. An Aggregator's
+verification paramter also includes its "ID", a a unique integer in <code>[0,
+SHARES)</code><a href="#section-6.2.1-1" class="pilcrow">¶</a></p>
+<span id="name-the-setup-algorithm-for-pri"></span><div id="prio3-eval-setup">
+<figure id="figure-9">
+            <div class="alignLeft art-text artwork" id="section-6.2.1-2.1">
+<pre>
+def setup(Prio3):
+    k_query_init = gen_rand(Prio3.Prg.SEED_SIZE)
+    verify_param = [(j, k_query_init) for j in range(Prio3.SHARES)]
+    return (None, verify_param)
+</pre>
+</div>
+<figcaption><a href="#figure-9" class="selfRef">Figure 9</a>:
+<a href="#name-the-setup-algorithm-for-pri" class="selfRef">The setup algorithm for prio3.</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="sharding">
+<section id="section-6.2.2">
+          <h4 id="name-sharding-2">
+<a href="#section-6.2.2" class="section-number selfRef">6.2.2. </a><a href="#name-sharding-2" class="section-name selfRef">Sharding</a>
+          </h4>
+<p id="section-6.2.2-1">Recall from <a href="#flp" class="xref">Section 6.1</a> that the syntax for FLP systems calls for "joint randomness"
+shared by the prover (i.e., the Client) and the verifier (i.e., the
+Aggregators). VDAFs have no such notion. Instead, the Client derives the joint
+randomness from its input in a way that allows the Aggregators to reconstruct it
+from their input shares. (This idea comes from Section 6.2.3 of <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span>.)<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-2">The input-distribution algorithm involves the following steps:<a href="#section-6.2.2-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.2.2-3">
+<li id="section-6.2.2-3.1">Encode the Client's raw measurement as an input for the FLP<a href="#section-6.2.2-3.1" class="pilcrow">¶</a>
+</li>
+            <li id="section-6.2.2-3.2">Shard the input into a sequence of input shares<a href="#section-6.2.2-3.2" class="pilcrow">¶</a>
+</li>
+            <li id="section-6.2.2-3.3">Derive the joint randomness from the input shares<a href="#section-6.2.2-3.3" class="pilcrow">¶</a>
+</li>
+            <li id="section-6.2.2-3.4">Run the FLP proof-generation algorithm using the joint randomness and prover
+randomness generated locally<a href="#section-6.2.2-3.4" class="pilcrow">¶</a>
+</li>
+            <li id="section-6.2.2-3.5">Shard the proof into a sequence of input shares<a href="#section-6.2.2-3.5" class="pilcrow">¶</a>
+</li>
+          </ol>
+<p id="section-6.2.2-4">The input and proof shares of one Aggregator (below we call it the "leader") are
+vectors of field elements. The shares of the other aggregators (below we call
+them the "helpers") are represented instead by PRG seeds, which are expanded
+into vectors of field elements of the required length. (See <a href="#prg" class="xref">Section 5.2</a>.)<a href="#section-6.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-5">This algorithm also makes use of a pair of helper functions for encoding the
+leader share and helper share. These are called <code>encode_leader_share</code> and
+<code>encode_helper_share</code> respectively and they are described in
+<a href="#prio3-helper-functions" class="xref">Section 6.2.6</a>.<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
+<span id="name-input-distribution-algorith"></span><div id="prio3-eval-input">
+<figure id="figure-10">
+            <div class="alignLeft art-text artwork" id="section-6.2.2-6.1">
+<pre>
+def measurement_to_input_shares(Prio3, _public_param, measurement):
+    inp = Prio3.Flp.encode(measurement)
+    k_joint_rand = zeros(Prio3.Prg.SEED_SIZE)
+
+    # Generate input shares.
+    leader_input_share = inp
+    k_helper_input_shares = []
+    k_helper_blinds = []
+    k_helper_hints = []
+    for j in range(Prio3.SHARES-1):
+        k_blind = gen_rand(Prio3.Prg.SEED_SIZE)
+        k_share = gen_rand(Prio3.Prg.SEED_SIZE)
+        helper_input_share = Prio3.Prg.expand_into_vec(
+            Prio3.Flp.Field,
+            k_share,
+            b"input share",
+            Prio3.Flp.INPUT_LEN
+        )
+        leader_input_share = vec_sub(leader_input_share,
+                                     helper_input_share)
+        encoded = Prio3.Flp.Field.encode_vec(helper_input_share)
+        k_hint = Prio3.Prg.derive(k_blind, byte(j+1) + encoded)
+        k_joint_rand = xor(k_joint_rand, k_hint)
+        k_helper_input_shares.append(k_share)
+        k_helper_blinds.append(k_blind)
+        k_helper_hints.append(k_hint)
+    k_leader_blind = gen_rand(Prio3.Prg.SEED_SIZE)
+    encoded = Prio3.Flp.Field.encode_vec(leader_input_share)
+    k_leader_hint = Prio3.Prg.derive(k_leader_blind,
+                                     byte(0) + encoded)
+    k_joint_rand = xor(k_joint_rand, k_leader_hint)
+
+    # Finish joint randomness hints.
+    for j in range(Prio3.SHARES-1):
+        k_helper_hints[j] = xor(k_helper_hints[j], k_joint_rand)
+    k_leader_hint = xor(k_leader_hint, k_joint_rand)
+
+    # Generate the proof shares.
+    prove_rand = Prio3.Prg.expand_into_vec(
+        Prio3.Flp.Field,
+        gen_rand(Prio3.Prg.SEED_SIZE),
+        b"prove rand",
+        Prio3.Flp.PROVE_RAND_LEN
+    )
+    joint_rand = Prio3.Prg.expand_into_vec(
+        Prio3.Flp.Field,
+        k_joint_rand,
+        b"joint rand",
+        Prio3.Flp.JOINT_RAND_LEN
+    )
+    proof = Prio3.Flp.prove(inp, prove_rand, joint_rand)
+    leader_proof_share = proof
+    k_helper_proof_shares = []
+    for j in range(Prio3.SHARES-1):
+        k_share = gen_rand(Prio3.Prg.SEED_SIZE)
+        k_helper_proof_shares.append(k_share)
+        helper_proof_share = Prio3.Prg.expand_into_vec(
+            Prio3.Flp.Field,
+            k_share,
+            b"proof share",
+            Prio3.Flp.PROOF_LEN
+        )
+        leader_proof_share = vec_sub(leader_proof_share,
+                                     helper_proof_share)
+
+    input_shares = []
+    input_shares.append(Prio3.encode_leader_share(
+        leader_input_share,
+        leader_proof_share,
+        k_leader_blind,
+        k_leader_hint,
+    ))
+    for j in range(Prio3.SHARES-1):
+        input_shares.append(Prio3.encode_helper_share(
+            k_helper_input_shares[j],
+            k_helper_proof_shares[j],
+            k_helper_blinds[j],
+            k_helper_hints[j],
+        ))
+    return input_shares
+</pre>
+</div>
+<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
+<a href="#name-input-distribution-algorith" class="selfRef">Input-distribution algorithm for prio3.</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="preparation">
+<section id="section-6.2.3">
+          <h4 id="name-preparation-2">
+<a href="#section-6.2.3" class="section-number selfRef">6.2.3. </a><a href="#name-preparation-2" class="section-name selfRef">Preparation</a>
+          </h4>
+<p id="section-6.2.3-1">This section describes the process of recovering output shares from the input
+shares. The high-level idea is that each Aggregators first queries its input and
+proof share locally, then exchanges its verifier share with the other
+Aggregators. The verifeir shares are then combined into the verifier message,
+which is used by each Aggregator locally to decide whether to accept.<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.2.3-2">In addition, the Aggregators must ensure that they have all used the same joint
+randomness for the query-generation algorithm. The joint randomness is generated
+by a PRG seed. Each Aggregator derives an XOR secret share of this seed from its
+input share and the "blind" generated by the client. This means that, before it
+can run the query-generation algorithm, it must first gather the XOR secret
+shares derived by the other Aggregators.<a href="#section-6.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.2.3-3">So that the Aggregators can avoid an extra round of communication, the Client
+sends each Aggregator a "hint" equal to the XOR of the other Aggregators' shares
+of the joint randomness key. This leaves open the possibility that the
+Client cheated by, say, forcing the Aggregators to use joint randomness that
+biases the proof check procedure some way in its favor. To mitigate this, the
+Aggregators also check that they have all computed the same joint randomness key
+before accepting their output shares. To do so, they exchange their XOR shares
+of the PRG seed along with their verifier shares.<a href="#section-6.2.3-3" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6.2.3-4.1">
+              <p id="section-6.2.3-4.1.1">NOTE This optimization somewhat diverges from Section 6.2.3 of <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span>.
+Security analysis is needed.<a href="#section-6.2.3-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-6.2.3-5">The algorithms required for preparation are defined as follows. These algorithms
+make use of encoding and decoding methods defined in <a href="#prio3-helper-functions" class="xref">Section 6.2.6</a>.<a href="#section-6.2.3-5" class="pilcrow">¶</a></p>
+<span id="name-preparation-state-for-prio3"></span><div id="prio3-prep-state">
+<figure id="figure-11">
+            <div class="alignLeft art-text artwork" id="section-6.2.3-6.1">
+<pre>
+def prep_init(Prio3, verify_param, _agg_param, nonce, input_share):
+    (j, k_query_init) = verify_param
+
+    (input_share, proof_share, k_blind, k_hint) = \
+        Prio3.decode_leader_share(input_share) if j == 0 else \
+        Prio3.decode_helper_share(input_share)
+
+    out_share = Prio3.Flp.truncate(input_share)
+
+    k_query_rand = Prio3.Prg.derive(k_query_init, byte(255) + nonce)
+    query_rand = Prio3.Prg.expand_into_vec(
+        Prio3.Flp.Field,
+        k_query_rand,
+        b"query rand",
+        Prio3.Flp.QUERY_RAND_LEN
+    )
+    joint_rand, k_joint_rand, k_joint_rand_share = [], None, None
+    if Prio3.Flp.JOINT_RAND_LEN &gt; 0:
+        encoded = Prio3.Flp.Field.encode_vec(input_share)
+        k_joint_rand_share = Prio3.Prg.derive(k_blind,
+                                              byte(j) + encoded)
+        k_joint_rand = xor(k_hint, k_joint_rand_share)
+        joint_rand = Prio3.Prg.expand_into_vec(
+            Prio3.Flp.Field,
+            k_joint_rand,
+            b"joint rand",
+            Prio3.Flp.JOINT_RAND_LEN
+        )
+    verifier_share = Prio3.Flp.query(input_share,
+                                     proof_share,
+                                     query_rand,
+                                     joint_rand,
+                                     Prio3.SHARES)
+
+    prep_msg = Prio3.encode_prepare_message(verifier_share,
+                                            k_joint_rand_share)
+    return (out_share, k_joint_rand, prep_msg)
+
+def prep_next(Prio3, prep, inbound):
+    (out_share, k_joint_rand, prep_msg) = prep
+
+    if inbound is None:
+        return (prep, prep_msg)
+
+    (verifier, k_joint_rand_check) = \
+        Prio3.decode_prepare_message(inbound)
+
+    if k_joint_rand_check != k_joint_rand or \
+            not Prio3.Flp.decide(verifier):
+        raise ERR_VERIFY
+
+    return out_share
+
+def prep_shares_to_prep(Prio3, _agg_param, prep_shares):
+    verifier = Prio3.Flp.Field.zeros(Prio3.Flp.VERIFIER_LEN)
+    k_joint_rand_check = zeros(Prio3.Prg.SEED_SIZE)
+    for encoded in prep_shares:
+        (verifier_share, k_joint_rand_share) = \
+            Prio3.decode_prepare_message(encoded)
+
+        verifier = vec_add(verifier, verifier_share)
+
+        if Prio3.Flp.JOINT_RAND_LEN &gt; 0:
+            k_joint_rand_check = xor(k_joint_rand_check,
+                                     k_joint_rand_share)
+
+    return Prio3.encode_prepare_message(verifier, k_joint_rand_check)
+</pre>
+</div>
+<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
+<a href="#name-preparation-state-for-prio3" class="selfRef">Preparation state for prio3.</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="aggregation">
+<section id="section-6.2.4">
+          <h4 id="name-aggregation-2">
+<a href="#section-6.2.4" class="section-number selfRef">6.2.4. </a><a href="#name-aggregation-2" class="section-name selfRef">Aggregation</a>
+          </h4>
+<span id="name-aggregation-algorithm-for-p"></span><div id="prio3-out2agg">
+<figure id="figure-12">
+            <div class="alignLeft art-text artwork" id="section-6.2.4-1.1">
+<pre>
+def out_shares_to_agg_share(Prio3, _agg_param, out_shares):
+    agg_share = Prio3.Flp.Field.zeros(Prio3.Flp.OUTPUT_LEN)
+    for out_share in out_shares:
+        agg_share = vec_add(agg_share, out_share)
+    return agg_share
+</pre>
+</div>
+<figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
+<a href="#name-aggregation-algorithm-for-p" class="selfRef">Aggregation algorithm for prio3.</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="unsharding">
+<section id="section-6.2.5">
+          <h4 id="name-unsharding-2">
+<a href="#section-6.2.5" class="section-number selfRef">6.2.5. </a><a href="#name-unsharding-2" class="section-name selfRef">Unsharding</a>
+          </h4>
+<span id="name-computation-of-the-aggregat"></span><div id="prio3-agg-output">
+<figure id="figure-13">
+            <div class="alignLeft art-text artwork" id="section-6.2.5-1.1">
+<pre>
+def agg_shares_to_result(Prio3, _agg_param, agg_shares):
+    agg = Prio3.Flp.Field.zeros(Prio3.Flp.OUTPUT_LEN)
+    for agg_share in agg_shares:
+        agg = vec_add(agg, agg_share)
+    return list(map(lambda x: x.as_unsigned(), agg))
+</pre>
+</div>
+<figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
+<a href="#name-computation-of-the-aggregat" class="selfRef">Computation of the aggregate result for prio3.</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="prio3-helper-functions">
+<section id="section-6.2.6">
+          <h4 id="name-helper-functions">
+<a href="#section-6.2.6" class="section-number selfRef">6.2.6. </a><a href="#name-helper-functions" class="section-name selfRef">Helper Functions</a>
+          </h4>
+<span id="name-helper-functions-required-f"></span><div id="prio3-helpers">
+<figure id="figure-14">
+            <div class="alignLeft art-text artwork" id="section-6.2.6-1.1">
+<pre>
+def encode_leader_share(Prio3,
+                        input_share,
+                        proof_share,
+                        k_blind,
+                        k_hint):
+    encoded = Bytes()
+    encoded += Prio3.Flp.Field.encode_vec(input_share)
+    encoded += Prio3.Flp.Field.encode_vec(proof_share)
+    if Prio3.Flp.JOINT_RAND_LEN &gt; 0:
+        encoded += k_blind
+        encoded += k_hint
+    return encoded
+
+def decode_leader_share(Prio3, encoded):
+    l = Prio3.Flp.Field.ENCODED_SIZE * Prio3.Flp.INPUT_LEN
+    encoded_input_share, encoded = encoded[:l], encoded[l:]
+    input_share = Prio3.Flp.Field.decode_vec(encoded_input_share)
+    l = Prio3.Flp.Field.ENCODED_SIZE * Prio3.Flp.PROOF_LEN
+    encoded_proof_share, encoded = encoded[:l], encoded[l:]
+    proof_share = Prio3.Flp.Field.decode_vec(encoded_proof_share)
+    l = Prio3.Prg.SEED_SIZE
+    k_blind, k_hint = None, None
+    if Prio3.Flp.JOINT_RAND_LEN &gt; 0:
+        k_blind, encoded = encoded[:l], encoded[l:]
+        k_hint, encoded = encoded[:l], encoded[l:]
+    if len(encoded) != 0:
+        raise ERR_DECODE
+    return (input_share, proof_share, k_blind, k_hint)
+
+def encode_helper_share(Prio3,
+                        k_input_share,
+                        k_proof_share,
+                        k_blind,
+                        k_hint):
+    encoded = Bytes()
+    encoded += k_input_share
+    encoded += k_proof_share
+    if Prio3.Flp.JOINT_RAND_LEN &gt; 0:
+        encoded += k_blind
+        encoded += k_hint
+    return encoded
+
+def decode_helper_share(Prio3, encoded):
+    l = Prio3.Prg.SEED_SIZE
+    k_input_share, encoded = encoded[:l], encoded[l:]
+    input_share = Prio3.Prg.expand_into_vec(Prio3.Flp.Field,
+                                            k_input_share,
+                                            b"input share",
+                                            Prio3.Flp.INPUT_LEN)
+    k_proof_share, encoded = encoded[:l], encoded[l:]
+    proof_share = Prio3.Prg.expand_into_vec(Prio3.Flp.Field,
+                                            k_proof_share,
+                                            b"proof share",
+                                            Prio3.Flp.PROOF_LEN)
+    k_blind, k_hint = None, None
+    if Prio3.Flp.JOINT_RAND_LEN &gt; 0:
+        k_blind, encoded = encoded[:l], encoded[l:]
+        k_hint, encoded = encoded[:l], encoded[l:]
+    if len(encoded) != 0:
+        raise ERR_DECODE
+    return (input_share, proof_share, k_blind, k_hint)
+
+def encode_prepare_message(Prio3, verifier, k_joint_rand):
+    encoded = Bytes()
+    encoded += Prio3.Flp.Field.encode_vec(verifier)
+    if Prio3.Flp.JOINT_RAND_LEN &gt; 0:
+        encoded += k_joint_rand
+    return encoded
+
+def decode_prepare_message(Prio3, encoded):
+    l = Prio3.Flp.Field.ENCODED_SIZE * Prio3.Flp.VERIFIER_LEN
+    encoded_verifier, encoded = encoded[:l], encoded[l:]
+    verifier = Prio3.Flp.Field.decode_vec(encoded_verifier)
+    k_joint_rand = None
+    if Prio3.Flp.JOINT_RAND_LEN &gt; 0:
+        l = Prio3.Prg.SEED_SIZE
+        k_joint_rand, encoded = encoded[:l], encoded[l:]
+    if len(encoded) != 0:
+        raise ERR_DECODE
+    return (verifier, k_joint_rand)
+</pre>
+</div>
+<figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
+<a href="#name-helper-functions-required-f" class="selfRef">Helper functions required for prio3.</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="poplar1">
+<section id="section-7">
+      <h2 id="name-poplar1">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-poplar1" class="section-name selfRef">poplar1</a>
+      </h2>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7-1.1">
+          <p id="section-7-1.1.1">NOTE An implementation of this VDAF can be found
+<a href="https://github.com/abetterinternet/libprio-rs/blob/main/src/vdaf/poplar1.rs">here</a>.<a href="#section-7-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-7-2">This section specifies <code>poplar1</code>, a VDAF for the following task. Each Client holds
+a <code>BITS</code>-bit string and the Aggregators hold a set of <code>l</code>-bit strings, where <code>l
+&lt;= BITS</code>. We will refer to the latter as the set of "candidate prefixes". The
+Aggregators' goal is to count how many inputs are prefixed by each candidate
+prefix.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-3">This functionality is the core component of Poplar <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span>. At a high level,
+the protocol works as follows.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7-4">
+<li id="section-7-4.1">Each Clients runs the input-distribution algorithm on its <code>n</code>-bit string and
+sends an input share to each Aggregator.<a href="#section-7-4.1" class="pilcrow">¶</a>
+</li>
+        <li id="section-7-4.2">The Aggregators agree on an initial set of candidate prefixes, say <code>0</code> and
+<code>1</code>.<a href="#section-7-4.2" class="pilcrow">¶</a>
+</li>
+        <li id="section-7-4.3">The Aggregators evaluate the VDAF on each set of input shares and aggregate
+the recovered output shares. The aggregation parameter is the set of
+candidate prefixes.<a href="#section-7-4.3" class="pilcrow">¶</a>
+</li>
+        <li id="section-7-4.4">The Aggregators send their aggregate shares to the Collector, who combines
+them to recover the counts of each candidate prefix.<a href="#section-7-4.4" class="pilcrow">¶</a>
+</li>
+        <li id="section-7-4.5">Let <code>H</code> denote the set of prefixes that occurred at least <code>t</code> times. If the
+prefixes all have length <code>BITS</code>, then <code>H</code> is the set of <code>t</code>-heavy-hitters.
+Otherwise compute the next set of candidate prefixes as follows. For each <code>p</code>
+in <code>H</code>, add add <code>p || 0</code> and <code>p || 1</code> to the set. Repeat step 3 with the new
+set of candidate prefixes.<a href="#section-7-4.5" class="pilcrow">¶</a>
+</li>
+      </ol>
+<p id="section-7-5"><code>poplar1</code> is constructed from an "Incremental Distributed Point Function (IDPF)", a
+primitive described by <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span> that generalizes the notion of a Distributed
+Point Function (DPF) <span>[<a href="#GI14" class="xref">GI14</a>]</span>. Briefly, a DPF is used to distribute the
+computation of a "point function", a function that evaluates to zero on every
+input except at a programmable "point". The computation is distributed in such a
+way that no one party knows either the point or what it evaluates to.<a href="#section-7-5" class="pilcrow">¶</a></p>
+<p id="section-7-6">An IDPF generalizes this "point" to a path on a full binary tree from the root
+to one of the leaves. It is evaluated on an "index" representing a unique node
+of the tree. If the node is on the path, then function evaluates to to a
+non-zero value; otherwise it evaluates to zero. This structure allows an IDPF to
+provide the functionality required for the above protocol, while at the same
+time ensuring the same degree of privacy as a DPF.<a href="#section-7-6" class="pilcrow">¶</a></p>
+<p id="section-7-7">Our VDAF composes an IDPF with the "secure sketching" protocol of <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span>.
+This protocol ensures that evaluating a set of input shares on a unique set of
+candidate prefixes results in shares of a "one-hot" vector, i.e., a vector that
+is zero everywhere except for one element, which is equal to one.<a href="#section-7-7" class="pilcrow">¶</a></p>
+<p id="section-7-8">The name <code>poplar1</code> is an anagram of "hist", which is short for "histogram". It is a
+nod toward the "subset histogram" problem formulated by <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span> and for which
+the <code>poplar1</code> is a solution.<a href="#section-7-8" class="pilcrow">¶</a></p>
+<div id="incremental-distributed-point-functions-idpfs">
+<section id="section-7.1">
+        <h3 id="name-incremental-distributed-poi">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-incremental-distributed-poi" class="section-name selfRef">Incremental Distributed Point Functions (IDPFs)</a>
+        </h3>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.1-1.1">
+            <p id="section-7.1-1.1.1">NOTE An implementation of IDPFs can be found
+<a href="https://github.com/google/distributed_point_functions/">here</a>.<a href="#section-7.1-1.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-7.1-2">An IDPF is defined over a domain of size <code>2^BITS</code>, where <code>BITS</code> is constant
+defined by the IDPF. The Client specifies an index <code>alpha</code> and values <code>beta</code>,
+one for each "level" <code>1 &lt;= l &lt;= BITS</code>. The key generation generates two IDPF
+keys, one for each Aggregator. When evaluated at index <code>0 &lt;= x &lt; 2^l</code>, each
+IDPF share returns an additive share of <code>beta[l]</code> if <code>x</code> is the <code>l</code>-bit prefix
+of <code>alpha</code> and shares of zero otherwise.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.1-3.1">
+            <p id="section-7.1-3.1.1">CP What does it mean for <code>x</code> to be the <code>l</code>-bit prefix of <code>alpha</code>? We need to
+be a bit more precise here.<a href="#section-7.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.1-4.1">
+            <p id="section-7.1-4.1.1">CP Why isn't the domain size actually <code>2^(BITS+1)</code>, i.e., the number of nodes
+in a binary tree of height <code>BITS</code> (excluding the root)?<a href="#section-7.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-7.1-5">Each <code>beta[l]</code> is a pair of elements of a finite field. Each level <span class="bcp14">MAY</span> have
+different field parameters. Thus a concrete IDPF specifies associated types
+<code>Field[1]</code>, <code>Field[2]</code>, ..., and <code>Field[BITS]</code> defining, respectively, the field
+parameters at level 1, level 2, ..., and level <code>BITS</code>.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
+<p id="section-7.1-6">An IDPF is comprised of the following algorithms (let type <code>Value[l]</code> denote
+<code>(Field[l], Field[l])</code> for each level <code>l</code>):<a href="#section-7.1-6" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.1-7.1">
+            <code>idpf_gen(alpha: Unsigned, beta: (Value[1], ..., Value[BITS])) -&gt; key:
+(IDPFKey, IDPFKey)</code> is the randomized key-generation algorithm run by the
+client. Its inputs are the index <code>alpha</code> and the values <code>beta</code>. The value of
+<code>alpha</code> <span class="bcp14">MUST</span> be in range <code>[0, 2^BITS)</code>.<a href="#section-7.1-7.1" class="pilcrow">¶</a>
+</li>
+          <li class="normal" id="section-7.1-7.2">
+            <code>IDPFKey.eval(l: Unsigned, x: Unsigned) -&gt; value: Value[l])</code> is deterministic,
+stateless key-evaluation algorithm run by each Aggregator. It returns the
+value corresponding to index <code>x</code>. The value of <code>l</code> <span class="bcp14">MUST</span> be in <code>[1, BITS]</code> and
+the value of <code>x</code> <span class="bcp14">MUST</span> be in range <code>[2^(l-1), 2^l)</code>.<a href="#section-7.1-7.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-7.1-8">A concrete IDPF specifies a single associated constant:<a href="#section-7.1-8" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.1-9.1">
+            <code>BITS: Unsigned</code> is the length of each Client input.<a href="#section-7.1-9.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-7.1-10">A concrete IDPF also specifies the following associated types:<a href="#section-7.1-10" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.1-11.1">
+            <code>Field[l]</code> for each level <code>1 &lt;= l &lt;= BITS</code>. Each defines the same methods and
+associated constants as <code>Field</code> in <a href="#prio3" class="xref">Section 6</a>.<a href="#section-7.1-11.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-7.1-12">Note that IDPF construction of <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span> uses one field for the inner nodes of
+the tree and a different, larger field for the leaf nodes. See <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span>,
+Section 4.3.<a href="#section-7.1-12" class="pilcrow">¶</a></p>
+<p id="section-7.1-13">Finally, an implementation note. The interface for IDPFs specified here is
+stateless, in the sense that there is no state carried between IDPF evaluations.
+This is to align the IDPF syntax with the VDAF abstraction boundary, which does
+not include shared state across across VDAF evaluations. In practice, of course,
+it will often be beneficial to expose a stateful API for IDPFs and carry the
+state across evaluations.<a href="#section-7.1-13" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="poplar1-construction">
+<section id="section-7.2">
+        <h3 id="name-construction-2">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-construction-2" class="section-name selfRef">Construction</a>
+        </h3>
+<p id="section-7.2-1">The VDAF involves two rounds of communication (<code>ROUNDS == 2</code>) and is defined for
+two Aggregators (<code>SHARES == 2</code>).<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<div id="setup-1">
+<section id="section-7.2.1">
+          <h4 id="name-setup-3">
+<a href="#section-7.2.1" class="section-number selfRef">7.2.1. </a><a href="#name-setup-3" class="section-name selfRef">Setup</a>
+          </h4>
+<p id="section-7.2.1-1">The verification parameter is a symmetric key shared by both Aggregators. This
+VDAF has no public parameter.<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
+<span id="name-the-setup-algorithm-for-pop"></span><div id="poplar1-eval-setup">
+<figure id="figure-15">
+            <div class="alignLeft art-text artwork" id="section-7.2.1-2.1">
+<pre>
+def vdaf_setup():
+  k_verify_init = gen_rand(SEED_SIZE)
+  return (None, [(0, k_verify_init), (1, k_verify_init)])
+</pre>
+</div>
+<figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
+<a href="#name-the-setup-algorithm-for-pop" class="selfRef">The setup algorithm for poplar1.</a>
+            </figcaption></figure>
+</div>
+<div id="client">
+<section id="section-7.2.1.1">
+            <h5 id="name-client">
+<a href="#section-7.2.1.1" class="section-number selfRef">7.2.1.1. </a><a href="#name-client" class="section-name selfRef">Client</a>
+            </h5>
+<p id="section-7.2.1.1-1">The client's input is an IDPF index, denoted <code>alpha</code>. The values are pairs of
+field elements <code>(1, k)</code> where each <code>k</code> is chosen at random. This random value is
+used as part of the secure sketching protocol of <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span>. After evaluating
+their IDPF key shares on the set of candidate prefixes, the sketching protocol
+is used by the Aggregators to verify that they hold shares of a one-hot vector.
+In addition, for each level of the tree, the prover generates random elements
+<code>a</code>, <code>b</code>, and <code>c</code> and computes<a href="#section-7.2.1.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.2.1.1-2">
+<pre>
+    A = -2*a + k
+    B = a*a + b - k*a + c
+</pre><a href="#section-7.2.1.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-7.2.1.1-3">and sends additive shares of <code>a</code>, <code>b</code>, <code>c</code>, <code>A</code> and <code>B</code> to the Aggregators.
+Putting everything together, the input-distribution algorithm is defined as
+follows. Function <code>encode_input_share</code> is defined in <a href="#poplar1-helper-functions" class="xref">Section 7.2.5</a>.<a href="#section-7.2.1.1-3" class="pilcrow">¶</a></p>
+<span id="name-the-input-distribution-algo"></span><div id="poplar1-mes2inp">
+<figure id="figure-16">
+              <div class="alignLeft art-text artwork" id="section-7.2.1.1-4.1">
+<pre>
+def measurement_to_input_shares(_, alpha):
+  if alpha &lt; 2**BITS: raise ERR_INVALID_INPUT
+
+  # Prepare IDPF values.
+  beta = []
+  correlation_shares_0, correlation_shares_1 = [], []
+  for l in range(1,BITS+1):
+    (k, a, b, c) = Field[l].rand_vec(4)
+
+    # Construct values of the form (1, k), where k
+    # is a random field element.
+    beta += [(1, k)]
+
+    # Create secret shares of correlations to aid
+    # the Aggregators' computation.
+    A = -2*a+k
+    B = a*a + b - a * k + c
+    correlation_share = Field[l].rand_vec(5)
+    correlation_shares_1.append(correlation_share)
+    correlation_shares_0.append(
+      [a, b, c, A, B] - correlation_share)
+
+  # Generate IDPF shares.
+  (key_0, key_1) = idpf_gen(input, beta)
+
+  input_shares = [
+    encode_input_share(key_0, correlation_shares_0),
+    encode_input_share(key_1, correlation_shares_1),
+  ]
+
+  return input_shares
+</pre>
+</div>
+<figcaption><a href="#figure-16" class="selfRef">Figure 16</a>:
+<a href="#name-the-input-distribution-algo" class="selfRef">The input-distribution algorithm for poplar1.</a>
+              </figcaption></figure>
+</div>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.2.1.1-5.1">
+                <p id="section-7.2.1.1-5.1.1">TODO It would be more efficient to represent the correlation shares using PRG
+seeds as suggested in <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span>.<a href="#section-7.2.1.1-5.1.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="preparation-1">
+<section id="section-7.2.2">
+          <h4 id="name-preparation-3">
+<a href="#section-7.2.2" class="section-number selfRef">7.2.2. </a><a href="#name-preparation-3" class="section-name selfRef">Preparation</a>
+          </h4>
+<p id="section-7.2.2-1">The aggregation parameter encodes a sequence of candidate prefixes. When an
+Aggregator receives an input share from the Client, it begins by evaluating its
+IDPF share on each candidate prefix, recovering a pair of vectors of field
+elements <code>data_share</code> and <code>auth_share</code>, The Aggregators use <code>auth_share</code> and the
+correlation shares provided by the Client to verify that their <code>data_share</code>
+vectors are additive shares of a one-hot vector.<a href="#section-7.2.2-1" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.2.2-2.1">
+              <p id="section-7.2.2-2.1.1">CP Consider adding aggregation parameter as input to <code>k_verify_rand</code>
+derivation.<a href="#section-7.2.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<span id="name-preparation-state-for-popla"></span><div id="poplar1-prep-state">
+<figure id="figure-17">
+            <div class="alignLeft art-text artwork" id="section-7.2.2-3.1">
+<pre>
+class PrepState:
+  def __init__(verify_param, agg_param, nonce, input_share):
+    (self.l, self.candidate_prefixes) = decode_indexes(agg_param)
+    (self.idpf_key,
+     self.correlation_shares) = decode_input_share(input_share)
+    (self.party_id, k_verify_init) = verify_param
+    self.k_verify_rand = get_key(k_verify_init, nonce)
+    self.step = "ready"
+
+  def next(self, inbound: Optional[Bytes]):
+    l = self.l
+    (a_share, b_share, c_share,
+     A_share, B_share) = correlation_shares[l-1]
+
+    if self.step == "ready" and inbound == None:
+      # Evaluate IDPF on candidate prefixes.
+      data_share, auth_share = [], []
+      for x in self.candiate_prefixes:
+        value = kdpf_key.eval(l, x)
+        data_share.append(value[0])
+        auth_share.append(value[1])
+
+      # Prepare first sketch verification message.
+      r = expand(Field[l], self.k_verify_rand, len(data_share))
+      verifier_share_1 = [
+         a_share + inner_product(data_share, r),
+         b_share + inner_product(data_share, r * r),
+         c_share + inner_product(auth_share, r),
+      ]
+
+      self.output_share = data_share
+      self.step = "sketch round 1"
+      return verifier_share_1
+
+    elif self.step == "sketch round 1" and inbound != None:
+      verifier_1 = Field[l].decode_vec(inbound)
+      verifier_share_2 = [
+        (verifier_1[0] * verifier_1[0] \
+         - verifier_1[1] \
+         - verifier_1[2]) * self.party_id \
+        + A_share * verifer_1[0] \
+        + B_share
+      ]
+
+      self.step = "sketch round 2"
+      return Field[l].encode_vec(verifier_share_2)
+
+    elif self.step == "sketch round 2" and inbound != None:
+      verifier_2 = Field[l].decode_vec(inbound)
+      if verifier_2 != 0: raise ERR_INVALID
+      return Field[l].encode_vec(self.output_share)
+
+    else: raise ERR_INVALID_STATE
+
+def prep_shares_to_prep(agg_param, inbound: Vec[Bytes]):
+  if len(inbound) != 2:
+    raise ERR_INVALID_INPUT
+
+  (l, _) = decode_indexes(agg_param)
+  verifier = Field[l].decode_vec(inbound[0]) + \
+             Field[l].decode_vec(inbound[1])
+
+  return Field[l].encode_vec(verifier)
+</pre>
+</div>
+<figcaption><a href="#figure-17" class="selfRef">Figure 17</a>:
+<a href="#name-preparation-state-for-popla" class="selfRef">Preparation state for poplar1.</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="aggregation-1">
+<section id="section-7.2.3">
+          <h4 id="name-aggregation-3">
+<a href="#section-7.2.3" class="section-number selfRef">7.2.3. </a><a href="#name-aggregation-3" class="section-name selfRef">Aggregation</a>
+          </h4>
+<span id="name-aggregation-algorithm-for-po"></span><div id="poplar1-out2agg">
+<figure id="figure-18">
+            <div class="alignLeft art-text artwork" id="section-7.2.3-1.1">
+<pre>
+def out_shares_to_agg_share(agg_param, output_shares: Vec[Bytes]):
+  (l, candidate_prefixes) = decode_indexes(agg_param)
+  if len(output_shares) != len(candidate_prefixes):
+    raise ERR_INVALID_INPUT
+
+  agg_share = Field[l].zeros(len(candidate_prefixes))
+  for output_share in output_shares:
+    agg_share += Field[l].decode_vec(output_share)
+
+  return Field[l].encode_vec(agg_share)
+</pre>
+</div>
+<figcaption><a href="#figure-18" class="selfRef">Figure 18</a>:
+<a href="#name-aggregation-algorithm-for-po" class="selfRef">Aggregation algorithm for poplar1.</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="unsharding-1">
+<section id="section-7.2.4">
+          <h4 id="name-unsharding-3">
+<a href="#section-7.2.4" class="section-number selfRef">7.2.4. </a><a href="#name-unsharding-3" class="section-name selfRef">Unsharding</a>
+          </h4>
+<span id="name-computation-of-the-aggregate"></span><div id="poplar1-agg-output">
+<figure id="figure-19">
+            <div class="alignLeft art-text artwork" id="section-7.2.4-1.1">
+<pre>
+def agg_shares_to_result(agg_param, agg_shares: Vec[Bytes]):
+  (l, _) = decode_indexes(agg_param)
+  if len(agg_shares) != 2:
+    raise ERR_INVALID_INPUT
+
+  agg = Field[l].decode_vec(agg_shares[0]) + \
+        Field[l].decode_vec(agg_shares[1]J)
+
+  return Field[l].encode_vec(agg)
+</pre>
+</div>
+<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
+<a href="#name-computation-of-the-aggregate" class="selfRef">Computation of the aggregate result for poplar1.</a>
+            </figcaption></figure>
+</div>
+</section>
+</div>
+<div id="poplar1-helper-functions">
+<section id="section-7.2.5">
+          <h4 id="name-helper-functions-2">
+<a href="#section-7.2.5" class="section-number selfRef">7.2.5. </a><a href="#name-helper-functions-2" class="section-name selfRef">Helper Functions</a>
+          </h4>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.2.5-1.1">
+              <p id="section-7.2.5-1.1.1">TODO Specify the following functionalities:<a href="#section-7.2.5-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<ul class="normal">
+<li class="normal" id="section-7.2.5-2.1">
+              <code>encode_input_share</code> is used to encode an input share, consisting of an IDPF
+key share and correlation shares.<a href="#section-7.2.5-2.1" class="pilcrow">¶</a>
+</li>
+            <li class="normal" id="section-7.2.5-2.2">
+              <code>decode_input_share</code> is used to decode an input share.<a href="#section-7.2.5-2.2" class="pilcrow">¶</a>
+</li>
+            <li class="normal" id="section-7.2.5-2.3">
+              <code>decode_indexes(encoded: Bytes) -&gt; (l: Unsigned, indexes: Vec[Unsigned])</code>
+decodes a sequence of indexes, i.e., candidate indexes for IDFP evaluation.
+The value of <code>l</code> <span class="bcp14">MUST</span> be in range <code>[1, BITS]</code> and <code>indexes[i]</code> <span class="bcp14">MUST</span> be in range
+<code>[2^(l-1), 2^l)</code> for all <code>i</code>. An error is raised if <code>encoded</code> cannot be
+decoded.<a href="#section-7.2.5-2.3" class="pilcrow">¶</a>
+</li>
+          </ul>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="security">
+<section id="section-8">
+      <h2 id="name-security-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-8-1.1">
+          <p id="section-8-1.1.1">NOTE: This is a brief outline of the security considerations.  This section
+will be filled out more as the draft matures and security analyses are
+completed.<a href="#section-8-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-8-2">Multi-party protocols for privacy-preserving measurement have two essential
+security gaols:<a href="#section-8-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-8-3">
+<li id="section-8-3.1">Privacy: An attacker that controls the network, the Collector, and a subset
+of Clients and Aggregators learns nothing about the measurements of honest
+Clients beyond what it can deduce from the aggregate result.<a href="#section-8-3.1" class="pilcrow">¶</a>
+</li>
+        <li id="section-8-3.2">Robustness: An attacker that controls the network and a subset of Clients
+cannot cause the Collector to compute anything other than the aggregate of
+the measurements of honest Clients.<a href="#section-8-3.2" class="pilcrow">¶</a>
+</li>
+      </ol>
+<p id="section-8-4">Note that it is also possible to consider a stronger form of robustness, where
+the attacker also controls a subset of Aggregators (see <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span>, Section
+6.3). In that case, it is important to ensure that the verifier randomness
+shared between aggregators (<code>verify_params</code>, see <a href="#setup" class="xref">Section 6.2.1</a>) is never
+revealed to Clients. To satisfy this stronger notion of robustness, it is
+<span class="bcp14">RECOMMENDED</span> that the Aggregators generate <code>verify_params</code> only after a set of
+Client inputs has been collected for verification, and re-generate them for
+each such set of inputs.<a href="#section-8-4" class="pilcrow">¶</a></p>
+<p id="section-8-5">A VDAF is the core cryptographic primitive of a protocol that achieves
+the above privacy and robustness goals. It is not sufficient on its own,
+however.  The application will need to assure a few security properties,
+for example:<a href="#section-8-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8-6.1">Securely distributing the long-lived parameters.<a href="#section-8-6.1" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-8-6.2">
+          <p id="section-8-6.2.1">Establishing secure channels:<a href="#section-8-6.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8-6.2.2.1">Confidential and authentic channels among Aggregators, and between the
+Aggregators and the Collector; and<a href="#section-8-6.2.2.1" class="pilcrow">¶</a>
+</li>
+            <li class="normal" id="section-8-6.2.2.2">Confidential and Aggregator-authenticated channels between Clients and
+Aggregators.<a href="#section-8-6.2.2.2" class="pilcrow">¶</a>
+</li>
+          </ul>
+</li>
+        <li class="normal" id="section-8-6.3">Enforcing the non-collusion properties required of the specific VDAF in use.<a href="#section-8-6.3" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-8-7">In such an environment, a VDAF provides the high-level privacy property
+described above: The collector learns only the aggregate measurement, and
+nothing about individual measurements aside from what can be inferred from the
+aggregate result.  The aggregators learn neither individual measurements nor the
+aggregate result.  The collector is assured that the aggregate statistic
+accurately reflects the inputs as long as the Aggregators correctly executed
+their role in the VDAF.<a href="#section-8-7" class="pilcrow">¶</a></p>
+<p id="section-8-8">On their own, VDAFs do not mitigate Sybil attacks <span>[<a href="#Dou02" class="xref">Dou02</a>]</span>. In this attack, the
+adversary observes a subset of input shares transmitted by a Client it is
+interested in. It allows the input shares to be processed, but corrupts and
+picks bogus inputs for the remaining Clients.  Applications can guard against
+these risks by adding additional controls on measurement submission, such as
+client authentication and rate limits.<a href="#section-8-8" class="pilcrow">¶</a></p>
+<p id="section-8-9">VDAFs do not inherently provide differential privacy <span>[<a href="#Dwo06" class="xref">Dwo06</a>]</span>.  The VDAF approach
+to private measurement can be viewed as complementary to differential privacy,
+relying on non-collusion instead of statistical noise to protect the privacy of
+the inputs.  It is possible that a future VDAF could incorporate differential
+privacy features, e.g., by injecting noise before the sharding stage and
+removing it after unsharding.<a href="#section-8-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-9">
+      <h2 id="name-iana-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-9-1">This document makes no request of IANA.<a href="#section-9-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<section id="section-10">
+      <h2 id="name-references">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<section id="section-10.1">
+        <h3 id="name-normative-references">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8017">[RFC8017]</dt>
+        <dd>
+<span class="refAuthor">Moriarty, K., Ed.</span>, <span class="refAuthor">Kaliski, B.</span>, <span class="refAuthor">Jonsson, J.</span>, and <span class="refAuthor">A. Rusch</span>, <span class="refTitle">"PKCS #1: RSA Cryptography Specifications Version 2.2"</span>, <span class="seriesInfo">RFC 8017</span>, <span class="seriesInfo">DOI 10.17487/RFC8017</span>, <time datetime="2016-11" class="refDate">November 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8017">https://www.rfc-editor.org/rfc/rfc8017</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+      <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+<section id="section-10.2">
+        <h3 id="name-informative-references">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="AGJOP21">[AGJOP21]</dt>
+        <dd>
+<span class="refAuthor">Addanki, S.</span>, <span class="refAuthor">Garbe, K.</span>, <span class="refAuthor">Jaffe, E.</span>, <span class="refAuthor">Ostrovsky, R.</span>, and <span class="refAuthor">A. Polychroniadou</span>, <span class="refTitle">"Prio+: Privacy Preserving Aggregate Statistics via Boolean Shares"</span>, <time datetime="2021" class="refDate">2021</time>, <span>&lt;<a href="https://ia.cr/2021/576">https://ia.cr/2021/576</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="BBCGGI19">[BBCGGI19]</dt>
+        <dd>
+<span class="refAuthor">Boneh, D.</span>, <span class="refAuthor">Boyle, E.</span>, <span class="refAuthor">Corrigan-Gibbs, H.</span>, <span class="refAuthor">Gilboa, N.</span>, and <span class="refAuthor">Y. Ishai</span>, <span class="refTitle">"Zero-Knowledge Proofs on Secret-Shared Data via Fully Linear PCPs"</span>, <span class="seriesInfo">CRYPTO 2019 </span>, <time datetime="2019" class="refDate">2019</time>, <span>&lt;<a href="https://ia.cr/2019/188">https://ia.cr/2019/188</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="BBCGGI21">[BBCGGI21]</dt>
+        <dd>
+<span class="refAuthor">Boneh, D.</span>, <span class="refAuthor">Boyle, E.</span>, <span class="refAuthor">Corrigan-Gibbs, H.</span>, <span class="refAuthor">Gilboa, N.</span>, and <span class="refAuthor">Y. Ishai</span>, <span class="refTitle">"Lightweight Techniques for Private Heavy Hitters"</span>, <span class="seriesInfo">IEEE S&amp;P 2021 </span>, <time datetime="2021" class="refDate">2021</time>, <span>&lt;<a href="https://ia.cr/2021/017">https://ia.cr/2021/017</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="CGB17">[CGB17]</dt>
+        <dd>
+<span class="refAuthor">Corrigan-Gibbs, H.</span> and <span class="refAuthor">D. Boneh</span>, <span class="refTitle">"Prio: Private, Robust, and Scalable Computation of Aggregate Statistics"</span>, <span class="seriesInfo">NSDI 2017 </span>, <time datetime="2017" class="refDate">2017</time>, <span>&lt;<a href="https://dl.acm.org/doi/10.5555/3154630.3154652">https://dl.acm.org/doi/10.5555/3154630.3154652</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="Dou02">[Dou02]</dt>
+        <dd>
+<span class="refAuthor">Douceur, J.</span>, <span class="refTitle">"The Sybil Attack"</span>, <span class="seriesInfo">IPTPS 2002 </span>, <time datetime="2002" class="refDate">2002</time>, <span>&lt;<a href="https://doi.org/10.1007/3-540-45748-8_24">https://doi.org/10.1007/3-540-45748-8_24</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="Dwo06">[Dwo06]</dt>
+        <dd>
+<span class="refAuthor">Dwork, C.</span>, <span class="refTitle">"Differential Privacy"</span>, <span class="seriesInfo">ICALP 2006 </span>, <time datetime="2006" class="refDate">2006</time>, <span>&lt;<a href="https://link.springer.com/chapter/10.1007/11787006_1">https://link.springer.com/chapter/10.1007/11787006_1</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="ENPA">[ENPA]</dt>
+        <dd>
+<span class="refTitle">"Exposure Notification Privacy-preserving Analytics (ENPA) White Paper"</span>, <time datetime="2021" class="refDate">2021</time>, <span>&lt;<a href="https://covid19-static.cdn-apple.com/applications/covid19/current/static/contact-tracing/pdf/ENPA_White_Paper.pdf">https://covid19-static.cdn-apple.com/applications/covid19/current/static/contact-tracing/pdf/ENPA_White_Paper.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="EPK14">[EPK14]</dt>
+        <dd>
+<span class="refAuthor">Erlingsson, Ú.</span>, <span class="refAuthor">Pihur, V.</span>, and <span class="refAuthor">A. Korolova</span>, <span class="refTitle">"RAPPOR: Randomized Aggregatable Privacy-Preserving Ordinal Response"</span>, <span class="seriesInfo">CCS 2014 </span>, <time datetime="2014" class="refDate">2014</time>, <span>&lt;<a href="https://dl.acm.org/doi/10.1145/2660267.2660348">https://dl.acm.org/doi/10.1145/2660267.2660348</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="GI14">[GI14]</dt>
+        <dd>
+<span class="refAuthor">Gilboa, N.</span> and <span class="refAuthor">Y. Ishai</span>, <span class="refTitle">"Distributed Point Functions and Their Applications"</span>, <span class="seriesInfo">EUROCRYPT 2014 </span>, <time datetime="2014" class="refDate">2014</time>, <span>&lt;<a href="https://link.springer.com/chapter/10.1007/978-3-642-55220-5_35">https://link.springer.com/chapter/10.1007/978-3-642-55220-5_35</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.draft-gpew-priv-ppm">[I-D.draft-gpew-priv-ppm]</dt>
+        <dd>
+<span class="refAuthor">Geoghegan, T.</span>, <span class="refAuthor">Patton, C.</span>, <span class="refAuthor">Rescorla, E.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Privacy Preserving Measurement"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-gpew-priv-ppm-00</span>, <time datetime="2021-10-25" class="refDate">25 October 2021</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-gpew-priv-ppm-00">https://datatracker.ietf.org/doc/html/draft-gpew-priv-ppm-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OriginTelemetry">[OriginTelemetry]</dt>
+        <dd>
+<span class="refTitle">"Origin Telemetry"</span>, <time datetime="2020" class="refDate">2020</time>, <span>&lt;<a href="https://firefox-source-docs.mozilla.org/toolkit/components/telemetry/collection/origin.html">https://firefox-source-docs.mozilla.org/toolkit/components/telemetry/collection/origin.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="Vad16">[Vad16]</dt>
+      <dd>
+<span class="refAuthor">Vadhan, S.</span>, <span class="refTitle">"The Complexity of Differential Privacy"</span>, <time datetime="2016" class="refDate">2016</time>, <span>&lt;<a href="https://link.springer.com/chapter/10.1007/978-3-319-57048-8_7">https://link.springer.com/chapter/10.1007/978-3-319-57048-8_7</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</section>
+<div id="acknowledgments">
+<section id="appendix-A">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-A-1">Thanks to Henry Corrigan-Gibbs, Mariana Raykova, and Christopher Wood for useful
+feedback on the syntax of VDAF schemes.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Christopher Patton</span></div>
+<div dir="auto" class="left"><span class="org">Cloudflare, Inc.</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:cpatton@cloudflare.com" class="email">cpatton@cloudflare.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Richard L. Barnes</span></div>
+<div dir="auto" class="left"><span class="org">Cisco</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:rlb@ipv.sx" class="email">rlb@ipv.sx</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Phillipp Schoppmann</span></div>
+<div dir="auto" class="left"><span class="org">Google</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:schoppmann@google.com" class="email">schoppmann@google.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
