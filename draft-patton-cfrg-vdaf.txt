@@ -85,7 +85,7 @@ Table of Contents
        5.1.2.  FFT-Friendly Fields
        5.1.3.  Parameters
      5.2.  Pseudorandom Generators
-       5.2.1.  Constructions
+       5.2.1.  PrgAes128
    6.  Prio3
      6.1.  Fully Linear Proof (FLP) Systems
        6.1.1.  Encoding the Input
@@ -928,7 +928,8 @@ Table of Contents
    A pseudorandom generator (PRG) is used to expand a short,
    (pseudo)random seed into a long string of pseudorandom bits.  A PRG
    suitable for this document implements the interface specified in this
-   section.  Concrete constructions are described in Section 5.2.1.
+   section.  Concrete constructions are described in the subsections
+   that folllow.
 
    PRGs are defined by a class Prg with the following associated
    parameter:
@@ -977,9 +978,7 @@ Table of Contents
 
                  Figure 9: Derived class methods for PRGs.
 
-5.2.1.  Constructions
-
-5.2.1.1.  PrgAes128
+5.2.1.  PrgAes128
 
       OPEN ISSUE Phillipp points out that a fixed-key mode of AES may be
       more performant (https://eprint.iacr.org/2019/074.pdf).  See
@@ -1010,7 +1009,7 @@ class PrgAes128:
         stream = AES128-CTR(key, zeros(16), zeros(self.length_consumed))
         return stream[-length:]
 
-         Figure 10: Definition of PRG PrgBlockCipher(Aes128).
+               Figure 10: Definition of PRG PrgAes128.
 
 6.  Prio3
 
@@ -2010,7 +2009,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
    is either one or zero and the aggregate result is the sum of the
    measurements.
 
-   This instance uses PrgAes128 (see Section 5.2.1) as its PRG.  Its
+   This instance uses PrgAes128 (Section 5.2.1) as its PRG.  Its
    validity circuit, denoted Count, uses Field64 (Table 2) as its finite
    field.  Its gadget, denoted Mul, is the degree-2, arity-2 gadget
    defined as
@@ -2055,7 +2054,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
    determined range.  Each measurement is an integer in range [0,
    2^bits), where bits is an associated parameter.
 
-   This instance of prio3 uses PrgAes128 (see Section 5.2.1) as its PRG.
+   This instance of prio3 uses PrgAes128 (Section 5.2.1) as its PRG.
    Its validity circuit, denoted Sum, uses Field128 (Table 3) as its
    finite field.  The measurement is encoded as a length-bits vector of
    field elements, where the lth element of the vector represents the
@@ -2123,7 +2122,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
    arbitrary integer and the aggregate result counts the number of
    measurements that fall in a set of fixed buckets.
 
-   This instance of prio3 uses PrgAes128 (see Section 5.2.1) as its PRG.
+   This instance of prio3 uses PrgAes128 (Section 5.2.1) as its PRG.
    Its validity circuit, denoted Histogram, uses Field128 (Table 3) as
    its finite field.  The measurement is encoded as a one-hot vector
    representing the bucket into which the measurement falls (let bucket
