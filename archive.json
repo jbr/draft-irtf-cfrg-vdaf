@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2022-03-06T00:06:09.591694+00:00",
+  "timestamp": "2022-03-10T00:06:13.454229+00:00",
   "repo": "cjpatton/vdaf",
   "labels": [
     {
@@ -637,7 +637,31 @@
       "labels": [],
       "body": "Our initial PRG construction is based on AES: https://github.com/cjpatton/vdaf/pull/28. @schoppmp points out that there may alternative AES-based constructions that are better suited to our application. In addition, there may be alternative primitives, like an XOF hash function, that are well suited for VDAFs. This issue is for tracking this discussion.",
       "createdAt": "2022-02-25T19:49:52Z",
-      "updatedAt": "2022-02-25T19:49:52Z",
+      "updatedAt": "2022-03-09T18:04:40Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "cjpatton",
+          "authorAssociation": "OWNER",
+          "body": "Here's the paper Phillipp referenced: https://eprint.iacr.org/2019/074.pdf",
+          "createdAt": "2022-03-09T18:04:39Z",
+          "updatedAt": "2022-03-09T18:04:39Z"
+        }
+      ]
+    },
+    {
+      "number": 38,
+      "id": "I_kwDOGKuqOc5FZnLF",
+      "title": "Specifing serializaiton of verification parameter",
+      "url": "https://github.com/cjpatton/vdaf/issues/38",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "As @tgeoghegan pointed out in https://github.com/abetterinternet/libprio-rs/pull/192#issuecomment-1062483035, some applications will require transmitting verification parameters over a secure channel. To support these, we we ought to require that VDAFs specify an encoding.",
+      "createdAt": "2022-03-09T19:20:51Z",
+      "updatedAt": "2022-03-09T19:20:51Z",
       "closedAt": null,
       "comments": []
     }
