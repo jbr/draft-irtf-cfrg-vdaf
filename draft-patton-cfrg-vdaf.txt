@@ -5,10 +5,10 @@
 CFRG                                                           C. Patton
 Internet-Draft                                          Cloudflare, Inc.
 Intended status: Informational                              R. L. Barnes
-Expires: 8 September 2022                                          Cisco
+Expires: 13 September 2022                                         Cisco
                                                            P. Schoppmann
                                                                   Google
-                                                            7 March 2022
+                                                           12 March 2022
 
 
               Verifiable Distributed Aggregation Functions
@@ -51,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 September 2022.
+   This Internet-Draft will expire on 13 September 2022.
 
 Copyright Notice
 
@@ -2646,9 +2646,9 @@ def prep_shares_to_prep(agg_param, inbound: Vec[Bytes]):
    [I-D.draft-gpew-priv-ppm]
               Geoghegan, T., Patton, C., Rescorla, E., and C. A. Wood,
               "Privacy Preserving Measurement", Work in Progress,
-              Internet-Draft, draft-gpew-priv-ppm-00, 25 October 2021,
+              Internet-Draft, draft-gpew-priv-ppm-01, 7 March 2022,
               <https://datatracker.ietf.org/doc/html/draft-gpew-priv-
-              ppm-00>.
+              ppm-01>.
 
    [OriginTelemetry]
               "Origin Telemetry", 2020, <https://firefox-source-
