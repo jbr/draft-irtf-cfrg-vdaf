@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2022-03-10T00:06:13.454229+00:00",
+  "timestamp": "2022-03-17T00:06:11.524489+00:00",
   "repo": "cjpatton/vdaf",
   "labels": [
     {
@@ -662,6 +662,22 @@
       "body": "As @tgeoghegan pointed out in https://github.com/abetterinternet/libprio-rs/pull/192#issuecomment-1062483035, some applications will require transmitting verification parameters over a secure channel. To support these, we we ought to require that VDAFs specify an encoding.",
       "createdAt": "2022-03-09T19:20:51Z",
       "updatedAt": "2022-03-09T19:20:51Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 39,
+      "id": "I_kwDOGKuqOc5FxJ2w",
+      "title": "prio3: Shorten the prepare message",
+      "url": "https://github.com/cjpatton/vdaf/issues/39",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "By moving `decide()` into `prep_shares_to_prep()` we can avoid sending the unsharded verifier message over the network.",
+      "createdAt": "2022-03-16T04:05:40Z",
+      "updatedAt": "2022-03-16T04:05:40Z",
       "closedAt": null,
       "comments": []
     }
