@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2022-03-24T00:06:13.528715+00:00",
+  "timestamp": "2022-03-29T00:07:09.488824+00:00",
   "repo": "cjpatton/vdaf",
   "labels": [
     {
@@ -716,6 +716,30 @@
           "body": "> I'm not sure that a recommendation will suffice. If there's a difference in the encoding of one share vs. the others, then a PPM implementation needs to able to tell which one is different so it can be sent to the aggregator that is configured to handle that kind of share.\r\n\r\nTrue enough. Right now the information needed to decode (and indeed to prepare an input) is encoded by the verification parameter: https://www.ietf.org/archive/id/draft-patton-cfrg-vdaf-01.html#name-setup-2. This seems sufficient, but  perhaps there's a better way to expose this?\r\n\r\nBy the way, to decode a Prio3 input share, you need to know more than whether the share is for the \"leader\" or a \"helper\". You also need the \"aggregator ID\", which is used in an essential way to compute the joint randomness. For Prio3 this is encoded by the verification parameter.\r\n\r\n> Alternatively, an encoded input share could include some indication of how it is encoded (e.g. whether or not it's compressed in prio3) and then `Vdaf.prep_init` could use that inline information to decide how to decode the input share.\r\n\r\nSeems reasonable, though it would cost a few bits of communication.",
           "createdAt": "2022-03-23T00:03:22Z",
           "updatedAt": "2022-03-23T00:04:02Z"
+        }
+      ]
+    },
+    {
+      "number": 42,
+      "id": "I_kwDOGKuqOc5GkD62",
+      "title": "Representing 'linear state machine' requirement in pseudocode",
+      "url": "https://github.com/cjpatton/vdaf/issues/42",
+      "state": "OPEN",
+      "author": "divergentdave",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The following currently appears in section 4.3.\r\n\r\n> TODO Consider how to bake this \"linear state machine\" condition into the syntax. Given that Python 3 is used as our pseudocode, it's easier to specify the preparation state using a class.",
+      "createdAt": "2022-03-28T19:00:08Z",
+      "updatedAt": "2022-03-28T21:55:48Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "divergentdave",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "My suggestion: If we augment our pseudocode with dependent types, then we could parameterize the type of `Prep` by how many rounds are left before the output share is recovered. Making up some syntax, this would look like:\r\n\r\n```\r\nVdaf.prep_init(verify_param: VerifyParam, agg_param: AggParam, nonce: Bytes, input_share: Bytes) -> Prep[ROUNDS]\r\n\r\nVdaf.prep_next(prep: Prep[ROUNDS], inbound: None) -> If[ROUNDS == 0, OutShare, Tuple[Prep[ROUNDS - 1], Bytes]]\r\nVdaf.prep_next(prep: Prep[R such that R < ROUNDS], inbound: Bytes) -> If[R == 0, OutShare, Tuple[Prep[R - 1], Bytes]]\r\n```",
+          "createdAt": "2022-03-28T19:00:13Z",
+          "updatedAt": "2022-03-28T21:55:48Z"
         }
       ]
     }
@@ -3254,6 +3278,32 @@
       "mergeCommit": {
         "oid": "3a2892a558703f66df671f03355d3e65b86e98fd"
       },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 41,
+      "id": "PR_kwDOGKuqOc41LJBc",
+      "title": "Small fix to prime selection script",
+      "url": "https://github.com/cjpatton/vdaf/pull/41",
+      "state": "OPEN",
+      "author": "divergentdave",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This fixes a small bug in the prime searching script. Previously, it would skip candidate q values, since it decremented q by i, rather than check each `2^(n-k)-i`. In the interest of completeness, we now check each possible value.",
+      "createdAt": "2022-03-28T17:58:47Z",
+      "updatedAt": "2022-03-28T17:58:47Z",
+      "baseRepository": "cjpatton/vdaf",
+      "baseRefName": "main",
+      "baseRefOid": "d5d51ef9f7e990229ffa4b2fec624634ad398aa6",
+      "headRepository": "divergentdave/vdaf",
+      "headRefName": "david/prime-search",
+      "headRefOid": "784285e500334e1f5cf5769aaa72fc36fb05996b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
       "comments": [],
       "reviews": []
     }
