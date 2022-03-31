@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2022-03-29T00:07:09.488824+00:00",
+  "timestamp": "2022-03-31T00:06:10.382024+00:00",
   "repo": "cjpatton/vdaf",
   "labels": [
     {
@@ -3293,7 +3293,7 @@
       "labels": [],
       "body": "This fixes a small bug in the prime searching script. Previously, it would skip candidate q values, since it decremented q by i, rather than check each `2^(n-k)-i`. In the interest of completeness, we now check each possible value.",
       "createdAt": "2022-03-28T17:58:47Z",
-      "updatedAt": "2022-03-28T17:58:47Z",
+      "updatedAt": "2022-03-29T18:12:57Z",
       "baseRepository": "cjpatton/vdaf",
       "baseRefName": "main",
       "baseRefOid": "d5d51ef9f7e990229ffa4b2fec624634ad398aa6",
@@ -3305,7 +3305,21 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOGKuqOc43Iwmv",
+          "commit": {
+            "abbreviatedOid": "784285e"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "Thanks for checking :) Note that there is still time to pick new primes if we so choose.",
+          "createdAt": "2022-03-29T18:12:57Z",
+          "updatedAt": "2022-03-29T18:12:57Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
