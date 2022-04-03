@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2022-03-31T00:06:10.382024+00:00",
+  "timestamp": "2022-04-03T00:06:45.948116+00:00",
   "repo": "cjpatton/vdaf",
   "labels": [
     {
@@ -3320,6 +3320,32 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 43,
+      "id": "PR_kwDOGKuqOc41ge3l",
+      "title": "Editorial changes",
+      "url": "https://github.com/cjpatton/vdaf/pull/43",
+      "state": "OPEN",
+      "author": "divergentdave",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This collects some editorial changes throughout the document.\r\n\r\n1. Mention section 7 in the overview\r\n2. Link syntax\r\n3. Stray punctuation\r\n4. \"values `beta`\" appeared to be a singular/plural disagreement the first time I read it, until later reading that `beta` is itself a pair of values. This change identifies that at its introduction.\r\n5. Wrong variable in pseudocode\r\n6. Further explanation of how the correlation shares could be compressed\r\n7. Typo in pseudocode\r\n8. Copyediting",
+      "createdAt": "2022-04-01T18:40:51Z",
+      "updatedAt": "2022-04-01T18:40:51Z",
+      "baseRepository": "cjpatton/vdaf",
+      "baseRefName": "main",
+      "baseRefOid": "d5d51ef9f7e990229ffa4b2fec624634ad398aa6",
+      "headRepository": "divergentdave/vdaf",
+      "headRefName": "david/editorial-revisions",
+      "headRefOid": "a8acb4c4402c37f2627135a325ec3b8e6163e434",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
