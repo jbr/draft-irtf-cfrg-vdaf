@@ -5,10 +5,10 @@
 CFRG                                                           C. Patton
 Internet-Draft                                          Cloudflare, Inc.
 Intended status: Informational                              R. L. Barnes
-Expires: 17 September 2022                                         Cisco
+Expires: 8 October 2022                                            Cisco
                                                            P. Schoppmann
                                                                   Google
-                                                           16 March 2022
+                                                            6 April 2022
 
 
               Verifiable Distributed Aggregation Functions
@@ -51,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 September 2022.
+   This Internet-Draft will expire on 8 October 2022.
 
 Copyright Notice
 
@@ -266,9 +266,9 @@ Table of Contents
    The remainder of this document is organized as follows: Section 3
    gives a brief overview of VDAFs; Section 4 defines the syntax for
    VDAFs; Section 5 defines various functionalities that are common to
-   our constructions; Section 7 describes the Poplar1 construction;
-   Section 6 describes the Prio3 construction; and Section 8 enumerates
-   the security considerations for VDAFs.
+   our constructions; Section 6 describes the Prio3 construction;
+   Section 7 describes the Poplar1 construction; and Section 8
+   enumerates the security considerations for VDAFs.
 
 2.  Conventions and Definitions
 
@@ -422,8 +422,8 @@ Table of Contents
    The remainder of this section defines the VDAF interface in terms of
    an abstract base class Vdaf.  This class defines the set of methods
    and attributes a concrete VDAF must provide.  The attributes are
-   listed in [{vdaf-param}}; the methods are defined in the subsections
-   that follow.
+   listed in Table 1; the methods are defined in the subsections that
+   follow.
 
        +=============+=============================================+
        | Parameter   | Description                                 |
@@ -1179,7 +1179,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
                    Figure 11: Execution of an FLP.
 
    The proof system is constructed so that, if input is a valid input,
-   then run_flp(Flp,. input) always returns True.  On the other hand, if
+   then run_flp(Flp, input) always returns True.  On the other hand, if
    input is invalid, then as long as joint_rand and query_rand are
    generated uniform randomly, the output is False with overwhelming
    probability.
@@ -2251,11 +2251,11 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
 
    An IDPF is defined over a domain of size 2^BITS, where BITS is
    constant defined by the IDPF.  The Client specifies an index alpha
-   and values beta, one for each "level" 1 <= l <= BITS.  The key
-   generation generates two IDPF keys, one for each Aggregator.  When
-   evaluated at index 0 <= x < 2^l, each IDPF share returns an additive
-   share of beta[l] if x is the l-bit prefix of alpha and shares of zero
-   otherwise.
+   and a pair of values beta, one for each "level" 1 <= l <= BITS.  The
+   key generation generates two IDPF keys, one for each Aggregator.
+   When evaluated at index 0 <= x < 2^l, each IDPF share returns an
+   additive share of beta[l] if x is the l-bit prefix of alpha and
+   shares of zero otherwise.
 
       CP What does it mean for x to be the l-bit prefix of alpha?  We
       need to be a bit more precise here.
@@ -2362,7 +2362,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
          [a, b, c, A, B] - correlation_share)
 
      # Generate IDPF shares.
-     (key_0, key_1) = idpf_gen(input, beta)
+     (key_0, key_1) = idpf_gen(alpha, beta)
 
      input_shares = [
        encode_input_share(key_0, correlation_shares_0),
@@ -2373,8 +2373,8 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
 
           Figure 20: The input-distribution algorithm for poplar1.
 
-      TODO It would be more efficient to represent the correlation
-      shares using PRG seeds as suggested in [BBCGGI21].
+      TODO It would be more efficient to represent the shares of a, b,
+      and c using PRG seeds as suggested in [BBCGGI21].
 
 7.2.2.  Preparation
 
@@ -2407,7 +2407,7 @@ class PrepState:
       # Evaluate IDPF on candidate prefixes.
       data_share, auth_share = [], []
       for x in self.candidate_prefixes:
-        value = kdpf_key.eval(l, x)
+        value = self.idpf_key.eval(l, x)
         data_share.append(value[0])
         auth_share.append(value[1])
 
@@ -2667,8 +2667,8 @@ Acknowledgments
 
 Test Vectors
 
-   Test vectors cover the generation input shares and the conversion of
-   input shares into output shares.  Vectors specify the public and
+   Test vectors cover the generation of input shares and the conversion
+   of input shares into output shares.  Vectors specify the public and
    verification parameters, the measurement, the aggregation parameter,
    the expected input shares, the prepare messages, and the expected
    output shares.

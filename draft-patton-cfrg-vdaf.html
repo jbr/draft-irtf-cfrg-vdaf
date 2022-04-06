@@ -1021,11 +1021,11 @@ svg [stroke="fill"], svg [fill^="#fff"] {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">VDAF</td>
-<td class="right">March 2022</td>
+<td class="right">April 2022</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Patton, et al.</td>
-<td class="center">Expires 17 September 2022</td>
+<td class="center">Expires 8 October 2022</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1038,12 +1038,12 @@ svg [stroke="fill"], svg [fill^="#fff"] {
 <dd class="internet-draft">draft-patton-cfrg-vdaf-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2022-03-16" class="published">16 March 2022</time>
+<time datetime="2022-04-06" class="published">6 April 2022</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2022-09-17">17 September 2022</time></dd>
+<dd class="expires"><time datetime="2022-10-08">8 October 2022</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1102,7 +1102,7 @@ input that would result in an incorrect aggregate result.<a href="#section-abstr
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 17 September 2022.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 8 October 2022.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1451,9 +1451,10 @@ functionality.<a href="#section-1-12.2.2" class="pilcrow">¶</a></p>
       </ul>
 <p id="section-1-13">The remainder of this document is organized as follows: <a href="#overview" class="xref">Section 3</a> gives a
 brief overview of VDAFs; <a href="#vdaf" class="xref">Section 4</a> defines the syntax for VDAFs; <a href="#prelim" class="xref">Section 5</a>
-defines various functionalities that are common to our constructions; <a href="#poplar1" class="xref">Section 7</a>
-describes the Poplar1 construction; <a href="#prio3" class="xref">Section 6</a> describes the Prio3 construction;
-and <a href="#security" class="xref">Section 8</a> enumerates the security considerations for VDAFs.<a href="#section-1-13" class="pilcrow">¶</a></p>
+defines various functionalities that are common to our constructions; <a href="#prio3" class="xref">Section 6</a>
+describes the Prio3 construction; <a href="#poplar1" class="xref">Section 7</a> describes the Poplar1
+construction; and <a href="#security" class="xref">Section 8</a> enumerates the security considerations for
+VDAFs.<a href="#section-1-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1617,7 +1618,7 @@ compatible with the aggregation function.  Verification ensures that aggregating
 the recovered output shares will not lead to a garbled aggregate result.<a href="#section-4-5" class="pilcrow">¶</a></p>
 <p id="section-4-6">The remainder of this section defines the VDAF interface in terms of an abstract
 base class <code>Vdaf</code>. This class defines the set of methods and attributes a
-concrete VDAF must provide. The attributes are listed in [{vdaf-param}}; the
+concrete VDAF must provide. The attributes are listed in <a href="#vdaf-param" class="xref">Table 1</a>; the
 methods are defined in the subsections that follow.<a href="#section-4-6" class="pilcrow">¶</a></p>
 <span id="name-constants-and-types-defined"></span><div id="vdaf-param">
 <table class="center" id="table-1">
@@ -2616,7 +2617,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
           </figcaption></figure>
 </div>
 <p id="section-6.1-10">The proof system is constructed so that, if <code>input</code> is a valid input, then
-<code>run_flp(Flp,. input)</code> always returns <code>True</code>. On the other hand, if <code>input</code> is
+<code>run_flp(Flp, input)</code> always returns <code>True</code>. On the other hand, if <code>input</code> is
 invalid, then as long as <code>joint_rand</code> and <code>query_rand</code> are generated uniform
 randomly, the output is <code>False</code> with overwhelming probability.<a href="#section-6.1-10" class="pilcrow">¶</a></p>
 <p id="section-6.1-11">We remark that <span>[<a href="#BBCGGI19" class="xref">BBCGGI19</a>]</span> defines a much larger class of fully linear proof
@@ -4146,9 +4147,9 @@ is zero everywhere except for one element, which is equal to one.<a href="#secti
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-incremental-distributed-poi" class="section-name selfRef">Incremental Distributed Point Functions (IDPFs)</a>
         </h3>
 <p id="section-7.1-1">An IDPF is defined over a domain of size <code>2^BITS</code>, where <code>BITS</code> is constant
-defined by the IDPF. The Client specifies an index <code>alpha</code> and values <code>beta</code>,
-one for each "level" <code>1 &lt;= l &lt;= BITS</code>. The key generation generates two IDPF
-keys, one for each Aggregator. When evaluated at index <code>0 &lt;= x &lt; 2^l</code>, each
+defined by the IDPF. The Client specifies an index <code>alpha</code> and a pair of values
+<code>beta</code>, one for each "level" <code>1 &lt;= l &lt;= BITS</code>. The key generation generates two
+IDPF keys, one for each Aggregator. When evaluated at index <code>0 &lt;= x &lt; 2^l</code>, each
 IDPF share returns an additive share of <code>beta[l]</code> if <code>x</code> is the <code>l</code>-bit prefix
 of <code>alpha</code> and shares of zero otherwise.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
@@ -4282,7 +4283,7 @@ def measurement_to_input_shares(_, alpha):
       [a, b, c, A, B] - correlation_share)
 
   # Generate IDPF shares.
-  (key_0, key_1) = idpf_gen(input, beta)
+  (key_0, key_1) = idpf_gen(alpha, beta)
 
   input_shares = [
     encode_input_share(key_0, correlation_shares_0),
@@ -4298,8 +4299,8 @@ def measurement_to_input_shares(_, alpha):
 </div>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-7.2.1.1-5.1">
-                <p id="section-7.2.1.1-5.1.1">TODO It would be more efficient to represent the correlation shares using PRG
-seeds as suggested in <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span>.<a href="#section-7.2.1.1-5.1.1" class="pilcrow">¶</a></p>
+                <p id="section-7.2.1.1-5.1.1">TODO It would be more efficient to represent the shares of <code>a</code>, <code>b</code>, and <code>c</code>
+using PRG seeds as suggested in <span>[<a href="#BBCGGI21" class="xref">BBCGGI21</a>]</span>.<a href="#section-7.2.1.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </section>
@@ -4345,7 +4346,7 @@ class PrepState:
       # Evaluate IDPF on candidate prefixes.
       data_share, auth_share = [], []
       for x in self.candidate_prefixes:
-        value = kdpf_key.eval(l, x)
+        value = self.idpf_key.eval(l, x)
         data_share.append(value[0])
         auth_share.append(value[1])
 
@@ -4665,10 +4666,10 @@ Christopher Wood for useful feedback on and contributions to the spec.<a href="#
       <h2 id="name-test-vectors">
 <a href="#name-test-vectors" class="section-name selfRef">Test Vectors</a>
       </h2>
-<p id="appendix-B-1">Test vectors cover the generation input shares and the conversion of input shares
-into output shares. Vectors specify the public and verification parameters, the
-measurement, the aggregation parameter, the expected input shares, the prepare
-messages, and the expected output shares.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-1">Test vectors cover the generation of input shares and the conversion of input
+shares into output shares. Vectors specify the public and verification
+parameters, the measurement, the aggregation parameter, the expected input
+shares, the prepare messages, and the expected output shares.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
 <p id="appendix-B-2">Test vectors are encoded in JSON. Input shares and prepare messages are
 represented as hexadecimal streams. To make the tests deterministic,
 <code>gen_rand()</code> was replaced with a function that returns the requested number of
