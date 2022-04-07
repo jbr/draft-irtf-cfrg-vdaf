@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2022-04-03T00:06:45.948116+00:00",
+  "timestamp": "2022-04-07T00:06:16.155190+00:00",
   "repo": "cjpatton/vdaf",
   "labels": [
     {
@@ -159,9 +159,17 @@
       "labels": [],
       "body": "[This paper](https://arxiv.org/pdf/2110.14794.pdf) describes a distributed computation of a gradient descent. We're given a set of `(x[i], y[i])` pairs, where `x[i]` is client `i`'s *feature* and `y[i]` is the corresponding *label*. From skimming the paper, my understanding is that stochastic gradient descent is computed iteratively as\r\n```\r\n\\theta_{j+1} = \\theta_j - \\eta * (f(x[1], y[1], \\theta_j) + ... + f(x[n], y[n], \\theta_j))\r\n```\r\nuntil we find a (locally) optimal model `\\theta_j`.  for a particular function `f`. (`\\eta` is a constant called the \"learning rate\".) What the paper shows is that each iteration can be computed by two aggregators who hold the plaintext features `x[1], ..., x[n]`, but only secret shares of the labels `y[1], ..., y[n]`. The features are kept privacy by adding DP.\r\n\r\nThis looks an awful lot like a distributed aggregation function:\r\n* measurement is a feature and label\r\n* aggregation parameter is the model `\\theta_j` from the previous step.\r\n* aggregate result is the model `\\theta_{j+1}` for the next step.\r\n\r\nAnd yet there are two important differences:\r\n1. The label is secret shared, but the feature is not. We can certainly formalize security in the usual way --- the aggregators learn nothing about the measurements beyond what they can deduce from their view of the protocol. But this definition isn't all that meaningful if the feature leaks a lot of information about the label.\r\n2. The output isn't verifiable. In particular, the current protocol appears to allow a client to submit bogus input shares and garble the output without being detected.\r\n\r\nAdding verifiability (i.e., solving (2)) seems quite feasible. I'm not sure how best to address (1). It might be worth reaching out to the papers' authors to see if they considered how they might keep the features secret.\r\n\r\n@csharrison I'm curious if you have thoughts here.",
       "createdAt": "2021-11-15T22:17:30Z",
-      "updatedAt": "2021-11-15T22:17:30Z",
+      "updatedAt": "2022-04-06T20:34:52Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "cjpatton",
+          "authorAssociation": "OWNER",
+          "body": "Another reference to drop here: https://eprint.iacr.org/2018/442.pdf",
+          "createdAt": "2022-04-06T20:34:51Z",
+          "updatedAt": "2022-04-06T20:34:51Z"
+        }
+      ]
     },
     {
       "number": 11,
@@ -582,7 +590,7 @@
       "labels": [],
       "body": "The syntax is compatible with schemes that forego verifiability altogether, but calling such a scheme a \"VDAF\" would be misleading. It's probably a good idea to make this distinction explicit, i.e., define \"DAFs\" as 0-round VDAFs that provide no verifiability. Should we make room for this in this document, or does it make sense to kick this to a different document?\r\n\r\nNote that this question came up previously in the context of PPM: https://github.com/abetterinternet/ppm-specification/issues/45.",
       "createdAt": "2022-01-25T23:10:00Z",
-      "updatedAt": "2022-01-25T23:52:10Z",
+      "updatedAt": "2022-04-06T20:33:59Z",
       "closedAt": null,
       "comments": [
         {
@@ -591,6 +599,13 @@
           "body": "In case it helps, the [VOPRF document](https://cfrg.github.io/draft-irtf-cfrg-voprf/draft-irtf-cfrg-voprf.html) includes OPRFs with and without verifiability. I think it makes sense to include DAFs in this document, especially for deployments that don't need verifiability.",
           "createdAt": "2022-01-25T23:52:10Z",
           "updatedAt": "2022-01-25T23:52:10Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "OWNER",
+          "body": "One example of something that's close to a DAF: https://eprint.iacr.org/2018/442.pdf",
+          "createdAt": "2022-04-06T20:33:59Z",
+          "updatedAt": "2022-04-06T20:33:59Z"
         }
       ]
     },
@@ -731,7 +746,7 @@
       "labels": [],
       "body": "The following currently appears in section 4.3.\r\n\r\n> TODO Consider how to bake this \"linear state machine\" condition into the syntax. Given that Python 3 is used as our pseudocode, it's easier to specify the preparation state using a class.",
       "createdAt": "2022-03-28T19:00:08Z",
-      "updatedAt": "2022-03-28T21:55:48Z",
+      "updatedAt": "2022-04-06T20:25:53Z",
       "closedAt": null,
       "comments": [
         {
@@ -740,8 +755,38 @@
           "body": "My suggestion: If we augment our pseudocode with dependent types, then we could parameterize the type of `Prep` by how many rounds are left before the output share is recovered. Making up some syntax, this would look like:\r\n\r\n```\r\nVdaf.prep_init(verify_param: VerifyParam, agg_param: AggParam, nonce: Bytes, input_share: Bytes) -> Prep[ROUNDS]\r\n\r\nVdaf.prep_next(prep: Prep[ROUNDS], inbound: None) -> If[ROUNDS == 0, OutShare, Tuple[Prep[ROUNDS - 1], Bytes]]\r\nVdaf.prep_next(prep: Prep[R such that R < ROUNDS], inbound: Bytes) -> If[R == 0, OutShare, Tuple[Prep[R - 1], Bytes]]\r\n```",
           "createdAt": "2022-03-28T19:00:13Z",
           "updatedAt": "2022-03-28T21:55:48Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "OWNER",
+          "body": "That's an interesting idea. It would be great to see a PR with this idea implemented. Two constraints I'd like to keep top of mind:\r\n(1) If possible, our \"pseudocode\" ishould syntactically correct Python3 (well, Sage really.)\r\n(2) Readability is more important than rigorous type semantics.",
+          "createdAt": "2022-04-06T19:20:43Z",
+          "updatedAt": "2022-04-06T19:20:43Z"
+        },
+        {
+          "author": "divergentdave",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Sure, I'll noodle on that. I'm not sure Python typing can express the concept directly, but maybe we could show ~3 `@overload`s with `Literal[1]`, `Literal[2]`, `Literal[3]`, as parameters, etc.",
+          "createdAt": "2022-04-06T20:25:53Z",
+          "updatedAt": "2022-04-06T20:25:53Z"
         }
       ]
+    },
+    {
+      "number": 44,
+      "id": "I_kwDOGKuqOc5HO1SU",
+      "title": "Poplar1: `k_verify_rand` should be derived from agg param",
+      "url": "https://github.com/cjpatton/vdaf/issues/44",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Currently only the nonce is used to derive the shared verification randomness. This should also depend on the aggregation parameter so that the verification randomness is unique for each aggregation parameter.",
+      "createdAt": "2022-04-06T19:23:33Z",
+      "updatedAt": "2022-04-06T19:23:33Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -3286,24 +3331,26 @@
       "id": "PR_kwDOGKuqOc41LJBc",
       "title": "Small fix to prime selection script",
       "url": "https://github.com/cjpatton/vdaf/pull/41",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "divergentdave",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "This fixes a small bug in the prime searching script. Previously, it would skip candidate q values, since it decremented q by i, rather than check each `2^(n-k)-i`. In the interest of completeness, we now check each possible value.",
       "createdAt": "2022-03-28T17:58:47Z",
-      "updatedAt": "2022-03-29T18:12:57Z",
+      "updatedAt": "2022-04-06T19:15:20Z",
       "baseRepository": "cjpatton/vdaf",
       "baseRefName": "main",
       "baseRefOid": "d5d51ef9f7e990229ffa4b2fec624634ad398aa6",
       "headRepository": "divergentdave/vdaf",
       "headRefName": "david/prime-search",
       "headRefOid": "784285e500334e1f5cf5769aaa72fc36fb05996b",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2022-04-06T19:15:20Z",
+      "mergedAt": "2022-04-06T19:15:19Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "439c2fe9ce67fb858bf3f05d84db2682e4e7f84c"
+      },
       "comments": [],
       "reviews": [
         {
@@ -3326,26 +3373,42 @@
       "id": "PR_kwDOGKuqOc41ge3l",
       "title": "Editorial changes",
       "url": "https://github.com/cjpatton/vdaf/pull/43",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "divergentdave",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "This collects some editorial changes throughout the document.\r\n\r\n1. Mention section 7 in the overview\r\n2. Link syntax\r\n3. Stray punctuation\r\n4. \"values `beta`\" appeared to be a singular/plural disagreement the first time I read it, until later reading that `beta` is itself a pair of values. This change identifies that at its introduction.\r\n5. Wrong variable in pseudocode\r\n6. Further explanation of how the correlation shares could be compressed\r\n7. Typo in pseudocode\r\n8. Copyediting",
       "createdAt": "2022-04-01T18:40:51Z",
-      "updatedAt": "2022-04-01T18:40:51Z",
+      "updatedAt": "2022-04-06T19:15:09Z",
       "baseRepository": "cjpatton/vdaf",
       "baseRefName": "main",
       "baseRefOid": "d5d51ef9f7e990229ffa4b2fec624634ad398aa6",
       "headRepository": "divergentdave/vdaf",
       "headRefName": "david/editorial-revisions",
       "headRefOid": "a8acb4c4402c37f2627135a325ec3b8e6163e434",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2022-04-06T19:15:09Z",
+      "mergedAt": "2022-04-06T19:15:09Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "6cf02ebad34b670870b9c14a6b4f471ecd065c9b"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOGKuqOc43q6YF",
+          "commit": {
+            "abbreviatedOid": "a8acb4c"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2022-04-06T19:14:51Z",
+          "updatedAt": "2022-04-06T19:14:51Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
