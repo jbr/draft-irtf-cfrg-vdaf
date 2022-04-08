@@ -1025,7 +1025,7 @@ svg [stroke="fill"], svg [fill^="#fff"] {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Patton, et al.</td>
-<td class="center">Expires 8 October 2022</td>
+<td class="center">Expires 10 October 2022</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1038,12 +1038,12 @@ svg [stroke="fill"], svg [fill^="#fff"] {
 <dd class="internet-draft">draft-patton-cfrg-vdaf-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2022-04-06" class="published">6 April 2022</time>
+<time datetime="2022-04-08" class="published">8 April 2022</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2022-10-08">8 October 2022</time></dd>
+<dd class="expires"><time datetime="2022-10-10">10 October 2022</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1102,7 +1102,7 @@ input that would result in an incorrect aggregate result.<a href="#section-abstr
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 8 October 2022.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 10 October 2022.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2211,7 +2211,7 @@ def vec_add(left: Vec[Field], right: Vec[Field]):
 <a href="#section-5.1.2" class="section-number selfRef">5.1.2. </a><a href="#name-fft-friendly-fields" class="section-name selfRef">FFT-Friendly Fields</a>
           </h4>
 <p id="section-5.1.2-1">Some VDAFs require fields that are suitable for efficient computation of the
-discrete Fourier transform. (One example is prio3 (<a href="#prio3" class="xref">Section 6</a>) when instantiated
+discrete Fourier transform. (One example is Prio3 (<a href="#prio3" class="xref">Section 6</a>) when instantiated
 with the generic FLP of <a href="#flp-generic-construction" class="xref">Section 6.3.3</a>.) Specifically, a field is
 said to be "FFT-friendly" if, in addition to satisfying the interface described
 in <a href="#field" class="xref">Section 5.1</a>, it implements the following method:<a href="#section-5.1.2-1" class="pilcrow">¶</a></p>
@@ -2671,7 +2671,7 @@ aggregation, and unsharding are described in the remaining subsections.<a href="
 <table class="center" id="table-5">
           <caption>
 <a href="#table-5" class="selfRef">Table 5</a>:
-<a href="#name-associated-parameters-for-t" class="selfRef">Associated parameters for the prio3 VDAF.</a>
+<a href="#name-associated-parameters-for-t" class="selfRef">Associated parameters for the Prio3 VDAF.</a>
           </caption>
 <thead>
             <tr>
@@ -2783,7 +2783,7 @@ def setup(Prio3):
 </pre>
 </div>
 <figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
-<a href="#name-the-setup-algorithm-for-pri" class="selfRef">The setup algorithm for prio3.</a>
+<a href="#name-the-setup-algorithm-for-pri" class="selfRef">The setup algorithm for Prio3.</a>
             </figcaption></figure>
 </div>
 </section>
@@ -2908,7 +2908,7 @@ def measurement_to_input_shares(Prio3, _public_param, measurement):
 </pre>
 </div>
 <figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
-<a href="#name-input-distribution-algorith" class="selfRef">Input-distribution algorithm for prio3.</a>
+<a href="#name-input-distribution-algorith" class="selfRef">Input-distribution algorithm for Prio3.</a>
             </figcaption></figure>
 </div>
 </section>
@@ -3022,7 +3022,7 @@ def prep_shares_to_prep(Prio3, _agg_param, prep_shares):
 </pre>
 </div>
 <figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
-<a href="#name-preparation-state-for-prio3" class="selfRef">Preparation state for prio3.</a>
+<a href="#name-preparation-state-for-prio3" class="selfRef">Preparation state for Prio3.</a>
             </figcaption></figure>
 </div>
 </section>
@@ -3046,7 +3046,7 @@ def out_shares_to_agg_share(Prio3, _agg_param, out_shares):
 </pre>
 </div>
 <figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
-<a href="#name-aggregation-algorithm-for-p" class="selfRef">Aggregation algorithm for prio3.</a>
+<a href="#name-aggregation-algorithm-for-p" class="selfRef">Aggregation algorithm for Prio3.</a>
             </figcaption></figure>
 </div>
 </section>
@@ -3070,7 +3070,7 @@ def agg_shares_to_result(Prio3, _agg_param, agg_shares):
 </pre>
 </div>
 <figcaption><a href="#figure-16" class="selfRef">Figure 16</a>:
-<a href="#name-computation-of-the-aggregat" class="selfRef">Computation of the aggregate result for prio3.</a>
+<a href="#name-computation-of-the-aggregat" class="selfRef">Computation of the aggregate result for Prio3.</a>
             </figcaption></figure>
 </div>
 </section>
@@ -3167,7 +3167,7 @@ def decode_prepare_message(Prio3, encoded):
 </pre>
 </div>
 <figcaption><a href="#figure-17" class="selfRef">Figure 17</a>:
-<a href="#name-helper-functions-required-f" class="selfRef">Helper functions required for prio3.</a>
+<a href="#name-helper-functions-required-f" class="selfRef">Helper functions required for Prio3.</a>
             </figcaption></figure>
 </div>
 </section>
@@ -3836,7 +3836,7 @@ parameters for this circuit are summarized below.<a href="#section-6.4.1-6" clas
 <p id="section-6.4.2-1">The next instance of Prio3 supports summing of integers in a pre-determined
 range. Each measurement is an integer in range <code>[0, 2^bits)</code>, where <code>bits</code> is an
 associated parameter.<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-2">This instance of prio3 uses <code>PrgAes128</code> (<a href="#prg-aes128" class="xref">Section 5.2.1</a>) as its PRG.
+<p id="section-6.4.2-2">This instance of Prio3 uses <code>PrgAes128</code> (<a href="#prg-aes128" class="xref">Section 5.2.1</a>) as its PRG.
 Its validity circuit, denoted <code>Sum</code>, uses <code>Field128</code> (<a href="#field128" class="xref">Table 3</a>) as its
 finite field. The measurement is encoded as a length-<code>bits</code> vector of field
 elements, where the <code>l</code>th element of the vector represents the <code>l</code>th bit of the
@@ -3961,7 +3961,7 @@ def Sum(inp: Vec[Field128], joint_rand: Vec[Field128]):
 measurements by computing a simple histogram. Each measurement is an arbitrary
 integer and the aggregate result counts the number of measurements that fall in
 a set of fixed buckets.<a href="#section-6.4.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.4.3-2">This instance of prio3 uses <code>PrgAes128</code> (<a href="#prg-aes128" class="xref">Section 5.2.1</a>) as its PRG. Its
+<p id="section-6.4.3-2">This instance of Prio3 uses <code>PrgAes128</code> (<a href="#prg-aes128" class="xref">Section 5.2.1</a>) as its PRG. Its
 validity circuit, denoted <code>Histogram</code>, uses <code>Field128</code> (<a href="#field128" class="xref">Table 3</a>) as its
 finite field. The measurement is encoded as a one-hot vector representing the
 bucket into which the measurement falls (let <code>bucket</code> denote a sequence of

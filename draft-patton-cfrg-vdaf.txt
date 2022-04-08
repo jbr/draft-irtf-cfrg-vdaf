@@ -5,10 +5,10 @@
 CFRG                                                           C. Patton
 Internet-Draft                                          Cloudflare, Inc.
 Intended status: Informational                              R. L. Barnes
-Expires: 8 October 2022                                            Cisco
+Expires: 10 October 2022                                           Cisco
                                                            P. Schoppmann
                                                                   Google
-                                                            6 April 2022
+                                                            8 April 2022
 
 
               Verifiable Distributed Aggregation Functions
@@ -51,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 October 2022.
+   This Internet-Draft will expire on 10 October 2022.
 
 Copyright Notice
 
@@ -876,7 +876,7 @@ Table of Contents
 5.1.2.  FFT-Friendly Fields
 
    Some VDAFs require fields that are suitable for efficient computation
-   of the discrete Fourier transform.  (One example is prio3 (Section 6)
+   of the discrete Fourier transform.  (One example is Prio3 (Section 6)
    when instantiated with the generic FLP of Section 6.3.3.)
    Specifically, a field is said to be "FFT-friendly" if, in addition to
    satisfying the interface described in Section 5.1, it implements the
@@ -1249,7 +1249,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
       | AggResult   | Vec[Unsigned]                                 |
       +-------------+-----------------------------------------------+
 
-             Table 5: Associated parameters for the prio3 VDAF.
+             Table 5: Associated parameters for the Prio3 VDAF.
 
 6.2.1.  Setup
 
@@ -1264,7 +1264,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
        verify_param = [(j, k_query_init) for j in range(Prio3.SHARES)]
        return (None, verify_param)
 
-                 Figure 12: The setup algorithm for prio3.
+                 Figure 12: The setup algorithm for Prio3.
 
 6.2.2.  Sharding
 
@@ -1382,7 +1382,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
            ))
        return input_shares
 
-             Figure 13: Input-distribution algorithm for prio3.
+             Figure 13: Input-distribution algorithm for Prio3.
 
 6.2.3.  Preparation
 
@@ -1489,7 +1489,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
        return Prio3.encode_prepare_message(verifier,
                                            k_joint_rand_check)
 
-                  Figure 14: Preparation state for prio3.
+                  Figure 14: Preparation state for Prio3.
 
 6.2.4.  Aggregation
 
@@ -1502,7 +1502,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
            agg_share = vec_add(agg_share, out_share)
        return agg_share
 
-                Figure 15: Aggregation algorithm for prio3.
+                Figure 15: Aggregation algorithm for Prio3.
 
 6.2.5.  Unsharding
 
@@ -1516,7 +1516,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
            agg = vec_add(agg, agg_share)
        return list(map(lambda x: x.as_unsigned(), agg))
 
-         Figure 16: Computation of the aggregate result for prio3.
+         Figure 16: Computation of the aggregate result for Prio3.
 
 6.2.6.  Auxiliary Functions
 
@@ -1601,7 +1601,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
            raise ERR_DECODE
        return (verifier, k_joint_rand)
 
-              Figure 17: Helper functions required for prio3.
+              Figure 17: Helper functions required for Prio3.
 
 6.3.  A General-Purpose FLP
 
@@ -2054,7 +2054,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
    determined range.  Each measurement is an integer in range [0,
    2^bits), where bits is an associated parameter.
 
-   This instance of prio3 uses PrgAes128 (Section 5.2.1) as its PRG.
+   This instance of Prio3 uses PrgAes128 (Section 5.2.1) as its PRG.
    Its validity circuit, denoted Sum, uses Field128 (Table 3) as its
    finite field.  The measurement is encoded as a length-bits vector of
    field elements, where the lth element of the vector represents the
@@ -2122,7 +2122,7 @@ def run_flp(Flp, inp: Vec[Flp.Field], num_shares: Unsigned):
    arbitrary integer and the aggregate result counts the number of
    measurements that fall in a set of fixed buckets.
 
-   This instance of prio3 uses PrgAes128 (Section 5.2.1) as its PRG.
+   This instance of Prio3 uses PrgAes128 (Section 5.2.1) as its PRG.
    Its validity circuit, denoted Histogram, uses Field128 (Table 3) as
    its finite field.  The measurement is encoded as a one-hot vector
    representing the bucket into which the measurement falls (let bucket
