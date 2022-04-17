@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2022-04-07T00:06:16.155190+00:00",
+  "timestamp": "2022-04-17T00:06:46.550786+00:00",
   "repo": "cjpatton/vdaf",
   "labels": [
     {
@@ -708,7 +708,7 @@
       "labels": [],
       "body": "PPM has a notion of a distinguished aggregator called the \"leader\". Wherever messages contain a sequence of objects, that protocol insists that the leader's share always be the first element (e.g. [`Report.encrypted_input_shares`](https://www.ietf.org/archive/id/draft-gpew-priv-ppm-01.html#section-4.2.2-4.4)).\r\n\r\nVDAF only references the notion of a leader in its specification of `Prio3`, [whose input sharding algorithm does specify that the leader's share appears first](https://www.ietf.org/archive/id/draft-patton-cfrg-vdaf-01.html#section-6.2.2).\r\n\r\nHowever that constraint isn't articulated generically for all VDAFs, which leaves things ambiguous for implementations. Consider the current generic declaration of [`prio::vdaf::Client::shard`](https://docs.rs/prio/latest/prio/vdaf/trait.Client.html):\r\n```\r\n    /// Shards a measurement into a sequence of input shares, one for each Aggregator.\r\n    fn shard(\r\n        &self,\r\n        public_param: &Self::PublicParam,\r\n        measurement: &Self::Measurement,\r\n    ) -> Result<Vec<Self::InputShare>, VdafError>;\r\n```\r\nPPM implementations have to guess that the 0th element in the returned `Vec` is the leader's share. Should the [VDAF-level definition of `shard`](https://www.ietf.org/archive/id/draft-patton-cfrg-vdaf-01.html#section-4.2) discuss the notion of a leader share, and require that the 0-th value returned from `Vdaf.measurement_to_input_shares` be the leader's?\r\n",
       "createdAt": "2022-03-22T23:31:13Z",
-      "updatedAt": "2022-03-23T00:04:02Z",
+      "updatedAt": "2022-04-14T23:33:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -731,6 +731,13 @@
           "body": "> I'm not sure that a recommendation will suffice. If there's a difference in the encoding of one share vs. the others, then a PPM implementation needs to able to tell which one is different so it can be sent to the aggregator that is configured to handle that kind of share.\r\n\r\nTrue enough. Right now the information needed to decode (and indeed to prepare an input) is encoded by the verification parameter: https://www.ietf.org/archive/id/draft-patton-cfrg-vdaf-01.html#name-setup-2. This seems sufficient, but  perhaps there's a better way to expose this?\r\n\r\nBy the way, to decode a Prio3 input share, you need to know more than whether the share is for the \"leader\" or a \"helper\". You also need the \"aggregator ID\", which is used in an essential way to compute the joint randomness. For Prio3 this is encoded by the verification parameter.\r\n\r\n> Alternatively, an encoded input share could include some indication of how it is encoded (e.g. whether or not it's compressed in prio3) and then `Vdaf.prep_init` could use that inline information to decide how to decode the input share.\r\n\r\nSeems reasonable, though it would cost a few bits of communication.",
           "createdAt": "2022-03-23T00:03:22Z",
           "updatedAt": "2022-03-23T00:04:02Z"
+        },
+        {
+          "author": "BranLwyd",
+          "authorAssociation": "NONE",
+          "body": "I don't think VDAFs need the notion of a leader -- but I do think that the VDAF spec should consider specifying that for the various per-aggregator parameters, values are correlated by index (so e.g. `verify_params` index 0 is always used with `input_shares` index 0). The only text I can find suggesting this is in the `run_vdaf` pseudocode in Section 4.6, but I am not sure this is normative.\r\n\r\nSeparately, PPM should specify that the leader uses VDAF index 0, helper uses index 1 (or vice versa).",
+          "createdAt": "2022-04-14T23:33:07Z",
+          "updatedAt": "2022-04-14T23:33:07Z"
         }
       ]
     },
