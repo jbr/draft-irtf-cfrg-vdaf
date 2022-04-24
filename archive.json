@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2022-04-17T00:06:46.550786+00:00",
+  "timestamp": "2022-04-24T00:07:16.572305+00:00",
   "repo": "cjpatton/vdaf",
   "labels": [
     {
@@ -683,7 +683,7 @@
     {
       "number": 39,
       "id": "I_kwDOGKuqOc5FxJ2w",
-      "title": "prio3: Shorten the prepare message",
+      "title": "Prio3: Shorten the prepare message",
       "url": "https://github.com/cjpatton/vdaf/issues/39",
       "state": "OPEN",
       "author": "cjpatton",
@@ -692,7 +692,7 @@
       "labels": [],
       "body": "By moving `decide()` into `prep_shares_to_prep()` we can avoid sending the unsharded verifier message over the network.",
       "createdAt": "2022-03-16T04:05:40Z",
-      "updatedAt": "2022-03-16T04:05:40Z",
+      "updatedAt": "2022-04-19T17:50:30Z",
       "closedAt": null,
       "comments": []
     },
@@ -708,7 +708,7 @@
       "labels": [],
       "body": "PPM has a notion of a distinguished aggregator called the \"leader\". Wherever messages contain a sequence of objects, that protocol insists that the leader's share always be the first element (e.g. [`Report.encrypted_input_shares`](https://www.ietf.org/archive/id/draft-gpew-priv-ppm-01.html#section-4.2.2-4.4)).\r\n\r\nVDAF only references the notion of a leader in its specification of `Prio3`, [whose input sharding algorithm does specify that the leader's share appears first](https://www.ietf.org/archive/id/draft-patton-cfrg-vdaf-01.html#section-6.2.2).\r\n\r\nHowever that constraint isn't articulated generically for all VDAFs, which leaves things ambiguous for implementations. Consider the current generic declaration of [`prio::vdaf::Client::shard`](https://docs.rs/prio/latest/prio/vdaf/trait.Client.html):\r\n```\r\n    /// Shards a measurement into a sequence of input shares, one for each Aggregator.\r\n    fn shard(\r\n        &self,\r\n        public_param: &Self::PublicParam,\r\n        measurement: &Self::Measurement,\r\n    ) -> Result<Vec<Self::InputShare>, VdafError>;\r\n```\r\nPPM implementations have to guess that the 0th element in the returned `Vec` is the leader's share. Should the [VDAF-level definition of `shard`](https://www.ietf.org/archive/id/draft-patton-cfrg-vdaf-01.html#section-4.2) discuss the notion of a leader share, and require that the 0-th value returned from `Vdaf.measurement_to_input_shares` be the leader's?\r\n",
       "createdAt": "2022-03-22T23:31:13Z",
-      "updatedAt": "2022-04-14T23:33:07Z",
+      "updatedAt": "2022-04-19T17:50:11Z",
       "closedAt": null,
       "comments": [
         {
@@ -738,6 +738,13 @@
           "body": "I don't think VDAFs need the notion of a leader -- but I do think that the VDAF spec should consider specifying that for the various per-aggregator parameters, values are correlated by index (so e.g. `verify_params` index 0 is always used with `input_shares` index 0). The only text I can find suggesting this is in the `run_vdaf` pseudocode in Section 4.6, but I am not sure this is normative.\r\n\r\nSeparately, PPM should specify that the leader uses VDAF index 0, helper uses index 1 (or vice versa).",
           "createdAt": "2022-04-14T23:33:07Z",
           "updatedAt": "2022-04-14T23:33:07Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "OWNER",
+          "body": "Right, there is currently no normative text regarding which server gets which share. I also don't think there should be, at least not in the VDAF spec. On the other hand, I agree we need language here to make sure that\r\n(1) it's possible for PPM to specify which server gets which share.\r\n(2) Users are guided towards making sensible choices which servers consume the \"big\" shares (when applicable).\r\n\r\nI welcome suggestions for ways to solve each of these :)",
+          "createdAt": "2022-04-19T17:50:11Z",
+          "updatedAt": "2022-04-19T17:50:11Z"
         }
       ]
     },
@@ -794,6 +801,51 @@
       "updatedAt": "2022-04-06T19:23:33Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 45,
+      "id": "I_kwDOGKuqOc5H9Pb0",
+      "title": "Combined state machine and output extraction",
+      "url": "https://github.com/cjpatton/vdaf/issues/45",
+      "state": "OPEN",
+      "author": "chris-wood",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Right now, `prep_next` returns one of two types: a final output share, or a new state and output message. Why not split these two into separate functions, e.g., `prep_next` for advancing the state machine and then `prep_finish` for producing the final output?",
+      "createdAt": "2022-04-18T16:56:44Z",
+      "updatedAt": "2022-04-21T01:13:00Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "cjpatton",
+          "authorAssociation": "OWNER",
+          "body": "We had this separation at some point, then decided to merge them into the same function. IIRC the thinking was that a particular VDAF might have a variable number of rounds, where the number of rounds depends on the inputs to the preparation phase. In this case the user would not know whether it should call `prep_next` or `prep_finish` at a particular step.\r\n\r\nThe VDAFs we have so far are all constant-round, and I think we're unlikely to have such a variable-round VDAF in the future. However, there are ways to extend your suggestion to allow the user to check if the current round is the last.\r\n\r\nI would be in favor the change you suggest, since it reduces a bit of API complexity. However, note that this complexity is, arguably, inherent to the pseudocode and is not shared by languages like Rust that have rich enum support. E.g.: \r\nhttps://github.com/divviup/libprio-rs/blob/main/src/vdaf.rs#L223.) \r\n\r\nThoughts, @schoppmp and @bifurcation?\r\n\r\n\r\n",
+          "createdAt": "2022-04-19T17:43:55Z",
+          "updatedAt": "2022-04-19T17:43:55Z"
+        },
+        {
+          "author": "tgeoghegan",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "To pile onto cjpatton's point: when we had a distinct `prepare_finish` method in `libprio`, we found that all it did was introduce the possibility of disagreement between client's tracking of the round of the prepare protocol we're on (which it has to do in order to choose whether to call `prepare_next` or `prepare_finish`) and `libprio`'s tracking of the round (which is encoded into the prepare state for all the VDAFs we've got). So `libprio` had to write extra code to handle `prepare_finish` being called at the wrong time, and clients of `libprio` had to write extra code to handle having their `prepare_next` call being rejected.\r\n\r\nAnother possibility that absolves the client of the VDAF from tracking rounds is to add a method on prepare state so you can query whether you are on the last round, and then do:\r\n\r\n```\r\nif prepare_state.is_last_round() {\r\n    let output_share = prepare_finish(prepare_state, messages);\r\n} else {\r\n    let (new_state, next_message) = prepare_next(prepare_state, messages);\r\n}\r\n```\r\n\r\nI agree with Chris P. that returning sum types make abstracting all this away behind a single `prepare_next` really nice in Rust (and I would think even in Python, tuple returns make this not so bad), but maybe `is_last_round` is an appropriate way to define VDAF to make it usable regardless of programming language features? Especially since we're free to define the interface of our Rust implementation however we like, regardless of how VDAF spells out `prepare_next` or `prepare_finish`.",
+          "createdAt": "2022-04-19T21:03:49Z",
+          "updatedAt": "2022-04-19T21:06:21Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "NONE",
+          "body": "@tgeoghegan's suggestion seems fine, but I would name `is_las_round` to something like `is_finished`. This seems _purely_ an editorial change, I think, since one could use type system in Rust like @cjpatton suggests to fold `is_finished` into the `prep_next`.",
+          "createdAt": "2022-04-20T13:59:36Z",
+          "updatedAt": "2022-04-20T13:59:36Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "OWNER",
+          "body": "Yeah, this is pretty much editorial.",
+          "createdAt": "2022-04-21T01:13:00Z",
+          "updatedAt": "2022-04-21T01:13:00Z"
+        }
+      ]
     }
   ],
   "pulls": [
