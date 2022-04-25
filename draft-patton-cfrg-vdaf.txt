@@ -2,13 +2,13 @@
 
 
 
-CFRG                                                           C. Patton
-Internet-Draft                                          Cloudflare, Inc.
-Intended status: Informational                              R. L. Barnes
-Expires: 10 October 2022                                           Cisco
+CFRG                                                        R. L. Barnes
+Internet-Draft                                                     Cisco
+Intended status: Informational                                 C. Patton
+Expires: 27 October 2022                                Cloudflare, Inc.
                                                            P. Schoppmann
                                                                   Google
-                                                            8 April 2022
+                                                           25 April 2022
 
 
               Verifiable Distributed Aggregation Functions
@@ -51,7 +51,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 October 2022.
+   This Internet-Draft will expire on 27 October 2022.
 
 Copyright Notice
 
@@ -2823,14 +2823,14 @@ Prio3Aes128Histogram
 
 Authors' Addresses
 
-   Christopher Patton
-   Cloudflare, Inc.
-   Email: cpatton@cloudflare.com
-
-
    Richard L. Barnes
    Cisco
    Email: rlb@ipv.sx
+
+
+   Christopher Patton
+   Cloudflare, Inc.
+   Email: chrispatton+ietf@gmail.com
 
 
    Phillipp Schoppmann
