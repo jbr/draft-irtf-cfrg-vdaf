@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2022-04-24T00:07:16.572305+00:00",
+  "timestamp": "2022-04-26T00:07:23.345281+00:00",
   "repo": "cjpatton/vdaf",
   "labels": [
     {
@@ -3465,6 +3465,61 @@
           "body": "",
           "createdAt": "2022-04-06T19:14:51Z",
           "updatedAt": "2022-04-06T19:14:51Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 46,
+      "id": "PR_kwDOGKuqOc42u5Uw",
+      "title": "Update authors",
+      "url": "https://github.com/cjpatton/vdaf/pull/46",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "* Sort authors alphabetically\r\n* Change Chris P.'s email address",
+      "createdAt": "2022-04-25T14:51:03Z",
+      "updatedAt": "2022-04-25T15:23:20Z",
+      "baseRepository": "cjpatton/vdaf",
+      "baseRefName": "main",
+      "baseRefOid": "6904d4a6295da82daf7ecd09c094326db4fb8ccd",
+      "headRepository": "cjpatton/vdaf",
+      "headRefName": "cjpatton/auth-update",
+      "headRefOid": "85474e233519f4abb43ead5600585f46d8b9829f",
+      "closedAt": "2022-04-25T15:23:20Z",
+      "mergedAt": "2022-04-25T15:23:20Z",
+      "mergedBy": "bifurcation",
+      "mergeCommit": {
+        "oid": "15c6abadc46d760a2b39a5708492a195fb4ee2e9"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOGKuqOc44vohI",
+          "commit": {
+            "abbreviatedOid": "85474e2"
+          },
+          "author": "schoppmp",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2022-04-25T14:58:24Z",
+          "updatedAt": "2022-04-25T14:58:24Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOGKuqOc44vzZ5",
+          "commit": {
+            "abbreviatedOid": "85474e2"
+          },
+          "author": "bifurcation",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2022-04-25T15:23:15Z",
+          "updatedAt": "2022-04-25T15:23:15Z",
           "comments": []
         }
       ]
